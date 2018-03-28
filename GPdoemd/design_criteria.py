@@ -1,30 +1,6 @@
 
 import numpy as np
 
-"""
-Functions for computing various design criteria.
-Used for experimental design for model selection.
-
-Inputs:
-	mu			[ n , M , (E) ]		Means of model output distributions.
-	s2			[ n , M , (E, E) ]	Covariance matrices of model output 
-										distributions.
-	noise_var	[ (E), (E) ]		(Optional, float/int/ndarray) 
-										Variance of measurement noise.
-										If omitted, noise_var = 0
-	pps			[ M ]				(Optional) Prior model probabilities.
-										If omitted, p(model) = 1/M
-	
-	n is the number of test points.
-	M is the number of different models.
-	E (optional) is the number of target dimensions/measured states.
-
-Output:
-	Design criterion	[ n ]	
-
-This code does not come with any guarantees or warranty of any kind.
-Copyright (C) 2018, Simon Olofsson, simon.olofsson15@imperial.ac.uk
-"""
 
 def _reshape (mu,s2,noise_var=None,pps=None):
 	""" MEAN"""
@@ -51,7 +27,7 @@ def _reshape (mu,s2,noise_var=None,pps=None):
 	assert np.all( np.diag(noise_var) >= 0. )
 
 	""" COVARIANCE """
-	s2  = s2.reshape( (n, M, E, E) )
+	s2  = s2.reshape( (n, M, E) )
 
 	""" MODEL PROBABILITIES """
 	if pps is None:
@@ -64,7 +40,33 @@ def _reshape (mu,s2,noise_var=None,pps=None):
 	return mu, s2, noise_var, pps, n, M, E
 
 
-def HR (mu,s2,pps,noise_var=None):
+"""
+Functions for computing various design criteria.
+Used for experimental design for model selection.
+
+Inputs:
+	mu			[ n , M , (E) ]		Means of model output distributions.
+	s2			[ n , M , (E, E) ]	Covariance matrices of model output 
+										distributions.
+	noise_var	[ (E), (E) ]		(Optional, float/int/ndarray) 
+										Variance of measurement noise.
+										If omitted, noise_var = 0
+	pps			[ M ]				(Optional) Prior model probabilities.
+										If omitted, p(model) = 1/M
+	
+	n is the number of test points.
+	M is the number of different models.
+	E (optional) is the number of target dimensions/measured states.
+
+Output:
+	Design criterion	[ n ]	
+
+This code does not come with any guarantees or warranty of any kind.
+Copyright (C) 2018, Simon Olofsson, simon.olofsson15@imperial.ac.uk
+"""
+
+
+def HR (mu,s2,noise_var=None,pps=None):
 	"""
 	Hunter and Reiner's design criterion
 
@@ -72,7 +74,7 @@ def HR (mu,s2,pps,noise_var=None):
 		Designs for discriminating between two rival models
 		Technometrics 7(3):307-323
 	"""
-	mu, _, _, _, n, M, _ = _reshape(mu,s2,pps,noise_var)
+	mu, _, _, _, n, M, _ = _reshape(mu,s2,None,None)
 
 	dc = np.zeros(n)
 	for i in range(M-1):
@@ -81,7 +83,7 @@ def HR (mu,s2,pps,noise_var=None):
 	return dc
 
 
-def BH (mu,s2,pps,noise_var=None):
+def BH (mu,s2,noise_var=None,pps=None):
 	"""
 	Box and Hill's design criterion, extended to multiresponse 
 	models by Prasad and Someswara Rao.
@@ -94,7 +96,7 @@ def BH (mu,s2,pps,noise_var=None):
 		discrimination in multiresponse systems.
 		Chem. Eng. Sci. 32:1411-1418
 	"""
-	mu, s2, noise_var, pps, n, M, E = _reshape(mu,s2,pps,noise_var)
+	mu, s2, noise_var, pps, n, M, E = _reshape(mu,s2,noise_var,pps)
 
 	s2 += noise_var
 	iS  = np.linalg.inv(s2)
@@ -110,7 +112,7 @@ def BH (mu,s2,pps,noise_var=None):
 	return 0.5*dc
 
 
-def BF (mu,s2,pps,noise_var):
+def BF (mu,s2,noise_var=None,pps=None):
 	"""
 	Buzzi-Ferraris et al.'s design criterion.
 
@@ -127,7 +129,7 @@ def BF (mu,s2,pps,noise_var):
 		discrimination among rival multiresponse models
 		Chem. Eng. Sci. 45(2):477-481
 	"""
-	mu, s2, noise_var, _, n, M, _ = _reshape(mu,s2,pps,noise_var)
+	mu, s2, noise_var, _, n, M, _ = _reshape(mu,s2,noise_var,None)
 
 	s2 += noise_var
 	dc  = np.zeros(n)
@@ -141,7 +143,7 @@ def BF (mu,s2,pps,noise_var):
 	return dc
 
 
-def AW (mu,s2,pps,noise_var=None):
+def AW (mu,s2,noise_var=None,pps=None):
 	"""
 	Modified Expected Akaike Weights Decision Criterion.
 
@@ -150,7 +152,7 @@ def AW (mu,s2,pps,noise_var=None):
 		Model Candidates: The AWDC Criterion.
 		In: Ind. Eng. Chem. Res. 49:913-919
 	"""
-	mu, s2, noise_var, pps, n, M, _ = _reshape(mu,s2,pps,noise_var)
+	mu, s2, noise_var, pps, n, M, _ = _reshape(mu,s2,noise_var,pps)
 
 	iS = np.linalg.inv(s2 + noise_var)
 	dc = np.zeros((n,M))
@@ -159,5 +161,55 @@ def AW (mu,s2,pps,noise_var=None):
 			r1 = np.expand_dims(mu[:,i] - mu[:,j],2) 
 			t1 = np.sum(r1*np.matmul(iS[:,i],r1), axis=(1,2))
 			dc[:,i] += np.exp(-0.5*t1)
-	# Compute AWDC
 	return np.sum( (1./dc) * pps, axis=1 )
+
+
+def _JR (mu,s2,noise_var=None,pps=None):
+	"""
+	Quadratic Jensen-Renyi divergence.
+	"""
+	mu, s2, noise_var, pps, _, M, E = _reshape(mu,s2,noise_var,pps)
+
+	# Pre-compute
+	iS   = np.linalg.inv(s2 + noise_var)
+	diS  = np.linalg.det(iS)
+	ldiS = np.log(diS)
+	diS  = np.sqrt( diS**2 / np.linalg.det(2*iS) )
+	
+	""" First term """
+	T1 = -0.5 * E * np.log(2 * np.pi)
+	T1 = np.sum( pps * (T1 + np.log(diS)), axis=1 )
+
+	""" Second term """
+	# Diagonal elements: (i,i)
+	T2 = np.sum( pps**2 * diS, axis=1 )
+
+	# Off-diagonal elements: (i,j) and (j,i)
+	for i in range(M):
+		# mu_i^T * inv(Si) * mu_i 
+		mi    = np.expand_dims(mu[:,i], 2)
+		iSmi  = np.matmul(iS[:,i], mi)
+		miSmi = np.sum(mi * iSmi, axis=(1,2))
+
+		for j in range(i+1, M):
+			# mu_j^T * inv(Sj) * mu_j
+			mj    = np.expand_dims(mu[:,j], 2)
+			iSmj  = np.matmul(iS[:,j], mj)
+			miSmj = np.sum(mj * iSmj, axis=(1,2))
+
+			# mu_ij^T * inv( inv(Si) + inv(Sj) ) * mu_ij
+			mij  = iSmi + iSmj
+			iSij = np.linalg.inv( iS[:,i] + iS[:,j] )
+			miSm = np.sum(mij * np.matmul(iSij, mij), axis=(1,2))
+
+			# log( det(iSi) * det(iSj) / det(iSi + iSj) )
+			logS = ldiS[:,i] + ldiS[:,j] - \
+					np.log( np.linalg.det( iS[:,i] + iS[:,j] ) )
+
+			phi = miSmi + miSmj - miSm - logS
+			T2 += 2 * pps[i] * pps[j] * np.exp(-0.5 * phi)
+
+	T2 = - np.log(T2) - 0.5 * E * np.log(2*np.pi)
+
+	""" Sum first and second term """
+	return T1 + T2
