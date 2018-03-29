@@ -1,6 +1,4 @@
 
-
-from taylor_first import TaylorFirstOrder
-from taylor_second import TaylorSecondOrder
-
+from .taylor_first import TaylorFirstOrder
+from .taylor_second import TaylorSecondOrder
 
