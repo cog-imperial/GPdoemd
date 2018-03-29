@@ -10,4 +10,6 @@ __pycache__
 .tox
 htmlcov
 venv
-docs/_build
+docs/_buildi
+.DS_Store
+
