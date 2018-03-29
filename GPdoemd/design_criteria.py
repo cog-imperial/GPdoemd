@@ -65,7 +65,6 @@ This code does not come with any guarantees or warranty of any kind.
 Copyright (C) 2018, Simon Olofsson, simon.olofsson15@imperial.ac.uk
 """
 
-
 def HR (mu,s2,noise_var=None,pps=None):
 	"""
 	Hunter and Reiner's design criterion
@@ -213,3 +212,4 @@ def _JR (mu,s2,noise_var=None,pps=None):
 
 	""" Sum first and second term """
 	return T1 + T2
+
