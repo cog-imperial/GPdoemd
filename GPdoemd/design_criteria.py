@@ -27,7 +27,7 @@ def _reshape (mu,s2,noise_var=None,pps=None):
 	assert np.all( np.diag(noise_var) >= 0. )
 
 	""" COVARIANCE """
-	s2  = s2.reshape( (n, M, E) )
+	s2  = s2.reshape( (n, M, E, E) )
 
 	""" MODEL PROBABILITIES """
 	if pps is None:
@@ -163,7 +163,7 @@ def AW (mu,s2,noise_var=None,pps=None):
 	return np.sum( (1./dc) * pps, axis=1 )
 
 
-def _JR (mu,s2,noise_var=None,pps=None):
+def JR (mu,s2,noise_var=None,pps=None):
 	"""
 	Quadratic Jensen-Renyi divergence.
 	"""

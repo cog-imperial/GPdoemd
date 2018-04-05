@@ -7,14 +7,14 @@ from .marginal import Marginal
 Second-order Taylor approximation
 """
 class TaylorSecondOrder (Marginal):
-	def __init__(self, gps, param_mean, meas_var, Xdata):
-		super().__init__(gps, param_mean, meas_var, Xdata)
+	def __init__(self, gps, param_mean):
+		super().__init__(gps, param_mean)
 	
-	def __call__ (self,xnew):
+	def __call__ (self, xnew):
 		# Dimensions
 		N = len(xnew)
 		E = len(self.gps)
-		D = len(self.m)
+		D = len(self.param_mean)
 
 		# Test points + pmean
 		Z = self.get_Z(xnew)
@@ -31,10 +31,10 @@ class TaylorSecondOrder (Marginal):
 			dmu[:,e1] = self.d_mu_d_p(gp, xnew)
 			""" d^2 mu / d p^2 * S_p """
 			ddmu        = self.d2_mu_d_p2(gp, xnew)
-			ddmuA[:,e1] = np.matmul(ddmu, self.s)
+			ddmuA[:,e1] = np.matmul(ddmu, self.Sigma)
 			""" trace ( d^2 s2 / d p^2 * S_p ) """
 			dds2    = self.d2_s2_d_p2(gp, xnew)
-			trdds2A = np.sum(dds2 * self.s, axis=(1,2))
+			trdds2A = np.sum(dds2 * self.Sigma, axis=(1,2))
 
 			tmp = gp.predict(Z)
 			M[:,e1]  = tmp[0][:,0] + 0.5 * np.trace(ddmuA[:,e1],axis1=1,axis2=2)
@@ -43,7 +43,7 @@ class TaylorSecondOrder (Marginal):
 		# Cross-covariance terms
 		S = np.zeros((N,E,E))
 		for n in range(N):
-			mSm  = np.matmul( dmu[n], np.matmul(self.s, dmu[n].T) )
+			mSm  = np.matmul( dmu[n], np.matmul(self.Sigma, dmu[n].T) )
 			S[n] = np.diag(s2[n]) + mSm
 						
 			for e1 in range(E):
