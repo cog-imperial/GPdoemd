@@ -1,131 +1,35 @@
 
-from os.path import isfile
-
 import numpy as np 
-import pickle
 import warnings
 
 from GPy.models import GPRegression
+from GPy.kern import Kern as GPyKern
 
-from GPdoemd.kernels import Kern
-from GPdoemd.marginals import Marginal
+from .model import Model
+from ..kernels import Kern
+from ..marginals import GPMarginal
+from ..utils import binary_dimensions
 
 from pdb import set_trace as st
 
-class Model:
-	"""
-	Model class
-
-	Initialised using a dictionary of the form
-		model_dict = {
-			'name': 
-			'call': 
-			'v_bounds': 
-			'p_bounds': 
-			'num_outputs': 
-
-			(optional)
-			'noisevar' - GP noise variance
-		}
-	"""
+class GPModel (Model):
 	def __init__ (self, model_dict=None):
-		# Read dictionnary
-		self.name        = model_dict['name']
-		self.call        = model_dict['call']
-		self.x_bounds    = model_dict['x_bounds']
-		self.p_bounds    = model_dict['p_bounds']
-		self.num_outputs = model_dict['num_outputs']
+		super().__init__(model_dict)
 		# Optional parameters
-		self.gp_noise_var   = model_dict.get('gp_noise_var', 1e-6)
-		self.meas_noise_var = model_dict.get('meas_noise_var', 1.)
+		self.gp_noise_var     = model_dict.get('gp_noise_var', 1e-6)
+		self.binary_variables = model_dict.get('binary_variables', [])
 
-	def __call__ (self, x, p):
-		return self.call(x, p)
 
 	"""
 	Properties
 	"""
-	## Model name
+	# Measurement noise variance transformed to GP y-space
 	@property
-	def name (self):
-		return self._name
-	@name.setter 
-	def name (self, value):
-		assert isinstance(value, str)
-		self._name = value
-
-	## Model function handle
-	@property
-	def call (self):
-		return self._call
-	@call.setter 
-	def call (self, value):
-		assert callable(value)
-		self._call = value
-
-	## Design variable bounds
-	@property
-	def x_bounds (self):
-		return self._x_bounds
-	@x_bounds.setter 
-	def x_bounds (self, value):
-		assert value.ndim == 2 and value.shape[1] == 2
-		self._x_bounds = value
-
-	## Model parameter bounds
-	@property
-	def p_bounds (self):
-		return self._p_bounds
-	@p_bounds.setter 
-	def p_bounds (self, value):
-		assert value.ndim == 2 and value.shape[1] == 2
-		self._p_bounds = value
-
-	## Number of outputs/target dimensions
-	@property
-	def num_outputs (self):
-		return self._num_outputs
-	@num_outputs.setter 
-	def num_outputs (self, value):
-		assert isinstance(value, int) and value > 0
-		self._num_outputs = value
-
-	## Measurement noise variance
-	@property
-	def meas_noise_var (self):
-		return self._meas_noise_var
-	@meas_noise_var.setter
-	def meas_noise_var (self, value):
-		if isinstance(value, (int, float)):
-			value = np.array([value] * self.num_outputs)
-		assert isinstance(value, np.ndarray)
-		assert np.all( value > 0. )
-		self._meas_noise_var = value
-
-
-
-
-	"""
-	Parameter estimation
-	"""	
-	## Best-fit model parameter values
-	@property
-	def pmean (self):
-		return None if not hasattr(self,'_pmean') else self._pmean
-	@pmean.setter
-	def pmean (self, value):
-		if value is not None:
-			assert value.shape == (self.dim_p,)
-			self._pmean = value
-			if not hasattr(self,'_old_pmean'):
-				self._old_pmean = None
-	@pmean.deleter
-	def pmean (self):
-		self._old_pmean = None if self._pmean is None else self._pmean.copy()
-		self._pmean     = None
-
-	def param_estim (self, Xdata, Ydata, method):
-		self.pmean = method(self, Xdata, Ydata)
+	def transformed_meas_noise_var (self):
+		if self.meas_noise_var.ndim == 1:
+			return self.transform_y_var(self.meas_noise_var)
+		else:
+			return self.transform_y_cov(self.meas_noise_var)
 
 
 
@@ -142,6 +46,9 @@ class Model:
 			assert value.shape[1] == self.dim_x + self.dim_p
 			self._zmin = np.min(value, axis=0)
 			self._zmax = np.max(value, axis=0)
+			for i in self.binary_variables:
+				self._zmin[i] = 0
+				self._zmax[i] = 1
 			self._Z    = self.transform_z(value)
 	@Z.deleter
 	def Z (self):
@@ -196,15 +103,10 @@ class Model:
 	def ymax (self):
 		return None if not hasattr(self,'_ymax') else self._ymax
 
-	## Number of design variables
+	## Number of binary variables
 	@property
-	def dim_x (self):
-		return len( self.x_bounds )
-
-	## Number of model parameters
-	@property
-	def dim_p (self):
-		return len( self.p_bounds )
+	def dim_b (self):
+		return len( self.binary_variables )
 
 	def set_training_data (self, Z, Y):
 		self.Z = Z
@@ -319,7 +221,7 @@ class Model:
 	@kern_x.setter
 	def kern_x (self, value):
 		if value is not None:
-			assert issubclass(value, Kern)
+			assert issubclass(value, GPyKern)
 			self._kern_x = value
 
 	## Model parameter kernel
@@ -344,7 +246,6 @@ class Model:
 	def hyp (self, value):
 		if value is not None:
 			assert len(value) == self.num_outputs
-			assert np.all( [np.all(v > 0) for v in value] )
 			self._hyp = value
 	@hyp.deleter
 	def hyp (self):
@@ -370,10 +271,11 @@ class Model:
 	@property
 	def gp_noise_var (self):
 		return self._gp_noise_var
-	@gp_noise_var.setter 
+	@gp_noise_var.setter
 	def gp_noise_var (self, value):
 		assert isinstance(value, (int,float)) and value > 0.
 		self._gp_noise_var = value
+
 
 	def gp_surrogate (self, Z=None, Y=None, kern_x=None, kern_p=None):
 		self.set_training_data(Z, Y)	
@@ -383,17 +285,34 @@ class Model:
 		self.set_kernels(kern_x, kern_p)
 		kern_x = self.kern_x
 		kern_p = self.kern_p
+		dim_x  = self.dim_x - self.dim_b
+		dim_p  = self.dim_p
+		dim    = dim_x + dim_p
+
+		R, I, J = binary_dimensions(Z, self.binary_variables)
+		#prange  = self.dim_b + np.arange(dim_x, dim)
+		#I       = np.array( I.tolist() + prange.tolist() )
 
 		assert not np.any([ value is None for value in [Z, Y, kern_x, kern_p] ])
 
 		gps = []
 		for e in range( self.num_outputs ):
-			dim   = self.dim_x + self.dim_p
-			kernx = kern_x(self.dim_x, range(self.dim_x), 'kernx')
-			kernp = kern_p(self.dim_p, range(self.dim_x, dim), 'kernp')
-			gp    = GPRegression(Z, Y[:,[e]], kernx * kernp)
-			gps.append(gp)
+			gps.append([])
+			for r in R:
+				Jr = (J==r)
+
+				if not np.any(Jr):
+					gps[e].append(None)
+					continue
+
+				kernx = kern_x(dim_x, range(dim_x), 'kernx')
+				kernp = kern_p(dim_p, range(dim_x, dim), 'kernp')
+				Zr    = Z[ np.ix_(Jr,  I ) ]
+				Yr    = Y[ np.ix_(Jr, [e]) ]
+				gp    = GPRegression(Zr, Yr, kernx * kernp)
+				gps[e].append(gp)
 		self.gps = gps
+
 
 	def gp_load_hyp (self, index=None):
 		if index is None:
@@ -402,12 +321,16 @@ class Model:
 			index = [index]
 
 		for e in index:
-			gp = self.gps[e]
-			gp.update_model(False)
-			gp.initialize_parameter()
-			gp[:] = self.hyp[e]
-			gp.update_model(True)
-			self.gps[e] = gp
+			gps  = self.gps[e]
+			hyps = self.hyp[e]
+			for gp,hyp in zip(gps,hyps):
+				if gp is None:
+					continue
+				gp.update_model(False)
+				gp.initialize_parameter()
+				gp[:] = hyp
+				gp.update_model(True)
+
 
 	def gp_optimize (self, index=None):
 		if index is None:
@@ -416,33 +339,55 @@ class Model:
 			index = [index]
 
 		for e in index:
-			gp = self.gps[e]
-			# Constrain noise variance
-			gp.Gaussian_noise.variance.constrain_fixed(self._gp_noise_var)
-			# Constrain kern_x lengthscales
-			for j in range(self.dim_x):
-				gp.kern.kernx.lengthscale[[j]].constrain_bounded(
-					lower=0., upper=10., warning=False )
-			# Constrain kern_p lengthscales
-			for j in range(self.dim_p):
-				gp.kern.kernp.lengthscale[[j]].constrain_bounded(
-					lower=0., upper=10., warning=False )
-			# Optimise
-			gp.optimize()
-			self.gps[e] = gp
+			gps = self.gps[e]
+			for gp in gps:
+				if gp is None:
+					continue
+				# Constrain noise variance
+				gp.Gaussian_noise.variance.constrain_fixed(self._gp_noise_var)
+				# Constrain kern_x lengthscales
+				for j in range(self.dim_x-self.dim_b):
+					gp.kern.kernx.lengthscale[[j]].constrain_bounded(
+						lower=0., upper=10., warning=False )
+				# Constrain kern_p lengthscales
+				for j in range(self.dim_p):
+					gp.kern.kernp.lengthscale[[j]].constrain_bounded(
+						lower=0., upper=10., warning=False )
+				# Optimise
+				gp.optimize()
+
+		hyp = []
+		for e,gps in enumerate(self.gps):
+			hyp.append([])
+			for gp in gps:
+				if gp is None:
+					hyp[e].append(None)
+				else:
+					hyp[e].append(gp[:])
+		self.hyp = hyp
+
 
 	def predict (self, xnew):
-		znew = np.array([ x.tolist() + self.pmean.tolist() for x in xnew ])
-		znew = self.transform_z(znew)
+		znew    = np.array([ x.tolist() + self.pmean.tolist() for x in xnew ])
+		znew    = self.transform_z(znew)
+		R, I, J = binary_dimensions(znew, self.binary_variables)
+		znew    = znew[:,I]
 
 		n = len(znew)
 		M = np.zeros((n, self.num_outputs))
 		S = np.zeros((n, self.num_outputs))
-		
-		for e in range( self.num_outputs ):
-			M[:,[e]], S[:,[e]] = self.gps[e].predict(znew)
+
+		for r in R:
+			Jr = J==r
+			if not np.any(Jr):
+				continue
+
+			for e in range( self.num_outputs ):
+				I          = np.ix_(Jr,[e])
+				M[I], S[I] = self.gps[e][r].predict(znew[Jr])
 
 		return self.backtransform_prediction(M,S)
+
 
 
 
@@ -455,27 +400,22 @@ class Model:
 		return None if not hasattr(self,'_gprm') else self._gprm
 	@gprm.setter
 	def gprm (self, value):
-		assert isinstance(value, Marginal)
+		assert isinstance(value, (GPMarginal))
 		self._gprm = value
 	@gprm.deleter
 	def gprm (self):
 		self._gprm = None
 
 	def marginal_init (self, method):
-		assert issubclass(method, Marginal)
-		self.gprm = method( self.gps, self.transform_p(self.pmean) )
+		pmean     = self.transform_p(self.pmean)
+		self.gprm = method( self, pmean )
 
 	def marginal_compute_covar (self, Xdata):
 		if self.gprm is None:
 			return None
 		Xdata = self.transform_x(Xdata)
-
-		if self.meas_noise_var.ndim == 1:
-			meas_noise_var = self.transform_y_var(self.meas_noise_var)
-		else:
-			meas_noise_var = self.transform_y_cov(self.meas_noise_var)
-
-		self.gprm.compute_param_covar(Xdata, meas_noise_var)
+		mvar  = self.transformed_meas_noise_var
+		self.gprm.compute_param_covar(Xdata, mvar)
 
 	def marginal_init_and_compute_covar (self, method, Xdata):
 		self.marginal_init(method)
@@ -494,48 +434,18 @@ class Model:
 	"""
 	Save and load model
 	"""
-	def _save_var (self, value, operation=None):
-		if not hasattr(self, value):
-			return None 
-		value = eval('self.' + value)
-		if value is None:
-			return None
-		return value if operation is None else operation(value)
+	def _get_save_dict (self):
+		d = super()._get_save_dict()
+		d['hyp'] = self.hyp
+		d['Z']   = self._save_var('Z', self.backtransform_z)
+		d['Y']   = self._save_var('Y', self.backtransform_y)
+		return d
 
-	def save (self, filename):
-		assert isinstance(filename, str)
-		d      = {'hyp':   self.hyp, 
-				  'pmean': self.pmean}
-
-		d['Z']         = self._save_var('Z', self.backtransform_z)
-		d['Y']         = self._save_var('Y', self.backtransform_y)
-		d['old_pmean'] = self._save_var('_old_pmean')
-		# Filename ending
-		suffix = '.gpdoemd.model'
-		lensuf = len(suffix)
-		if len(filename) <= lensuf or not filename[-lensuf:] == suffix:
-			filename += suffix
-		# Save in pickle
-		with open(filename,'wb') as f:
-			pickle.dump(d, f, pickle.HIGHEST_PROTOCOL)
-
-	def load (self, filename):
-		assert isinstance(filename, str)
-		# Filename ending
-		suffix = '.gpdoemd.model'
-		lensuf = len(suffix)
-		if len(filename) <= lensuf or not filename[-lensuf:] == suffix:
-			filename += suffix
-		# Load file
-		assert isfile(filename)
-		with open(filename,'rb') as f:
-			d = pickle.load(f)
-		# Variables
-		self.Z          = d['Z']
-		self.Y          = d['Y']
-		self.hyp        = d['hyp']
-		self.pmean      = d['pmean']
-		self._old_pmean = d['old_pmean']
+	def _load_save_dict (self, save_dict):
+		super()._load_save_dict(save_dict)
+		self.Z   = save_dict['Z']
+		self.Y   = save_dict['Y']
+		self.hyp = save_dict['hyp']
 
 
 
