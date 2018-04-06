@@ -1,37 +1,48 @@
 
 import numpy as np 
 
-from .marginal import Marginal
-
+from .gpmarginal import GPMarginal
+from ..utils import binary_dimensions
 
 """
 First-order Taylor approximation
 """
-class TaylorFirstOrder (Marginal):
-	def __init__(self, gps, param_mean):
-		super().__init__(gps, param_mean)
+class TaylorFirstOrder (GPMarginal):
+	def __init__(self, *args):
+		super().__init__(*args)
 	
 	def __call__ (self, xnew):
-		n = len(xnew)
-		E = len(self.gps)
-		D = len(self.param_mean)
+		N       = len(xnew)
+		E       = len(self.gps)
+		D       = len(self.param_mean)
+		R, I, J = binary_dimensions(xnew, self.bin_var)
+		# Test points + pmean
+		xnew = xnew[:,I]
+		Z    = self.get_Z(xnew)
 
-		M   = np.zeros((n,E))
-		s2  = np.zeros((n,E))
-		dmu = np.zeros((n,E,D))
-		
+		M   = np.zeros((N,E))
+		s2  = np.zeros((N,E))
+		dmu = np.zeros((N,E,D))
+
 		for e1 in range(E):
-			Z   = self.get_Z(xnew)
-			tmp = self.gps[e1].predict(Z)
+			gp = self.gps[e1]
+			for r in R:
+				Jr = (J==r)
+				if not np.any(Jr):
+					continue
+				i = np.ix_(Jr,[e1])
+				M[i], s2[i] = gp[r].predict(Z[Jr])
+				""" d mu / d p """
+				dmu[Jr,e1]  = self.d_mu_d_p(gp[r], xnew[Jr])
 
-			M[:,e1]   = tmp[0][:,0]
-			s2[:,e1]  = tmp[1][:,0]
-			dmu[:,e1] = self.d_mu_d_p(self.gps[e1], xnew)
+		# Cross-covariance terms
+		S = np.zeros((N,E,E))
+		for n in range(N):
+			mSm  = np.matmul( dmu[n], np.matmul(self.Sigma, dmu[n].T) )
+			S[n] = np.diag(s2[n]) + mSm
 
-		S = np.array([ np.diag(s2[i]) + \
-						np.matmul(dmu[i],np.matmul(self.Sigma,dmu[i].T)) \
-						for i in range(n)])
 		for e in range(E):
 			S[:,e,e] = np.maximum(1e-15,S[:,e,e])
 		return M, S
+
 
