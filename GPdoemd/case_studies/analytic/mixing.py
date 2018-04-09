@@ -18,6 +18,7 @@ class MicroMacroModel:
 	def p_bounds (self):
 		return np.array([[ 1e-6, 1e-1]]) # reaction constant
 
+
 """
 PFR reactor models
 """
@@ -123,18 +124,41 @@ class M5 (MicroMacroModel):
 """
 Data generator
 """
-class DataGen (M3):
-	def __call__ (self, x):
-		return 0
+class DataGen (MicroMacroModel):
+	def __init__ (self, i=2):
+		self.truemodel = i
+
+	@property
+	def truemodel (self):
+		return self._truemodel
+	@truemodel.setter
+	def truemodel (self, value):
+		if not hasattr(self, '_truemodel'):
+			assert isinstance(value, int) and 0 <= value <= 4
+			self._truemodel = value
+			
+	@property
+	def p (self):
+		return [0.006, 0.006, 0.015, 0.025, 0.025][ self.truemodel ]
 	@property
 	def measvar (self):
 		return np.array([0.05])**2
+	@property
+	def name (self):
+		return 'M{:d}'.format( self.truemodel + 1 )
+
+	def __call__ (self, x):
+		model = [M1, M2, M3, M4, M5][self.truemodel]
+		state = model(x, self.p)
+		noise = np.sqrt(self.measvar) * np.random.randn(self.n_outputs)
+		return np.abs( state + noise )
+
 
 """
 Get model functions
 """
-def get (*args):
-	return DataGen(), [M1(),M2(),M3(),M4(),M5()]
+def get (i=2):
+	return DataGen(i), [M1(),M2(),M3(),M4(),M5()]
 
 
 
