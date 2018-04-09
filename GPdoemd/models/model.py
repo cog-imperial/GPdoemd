@@ -93,6 +93,15 @@ class Model:
 	def dim_p (self):
 		return len( self.p_bounds )
 
+	## Model probability measure
+	@property
+	def probability (self):
+		return None if not hasattr(self,'_probability') else self._probability
+	@probability.setter
+	def probability (self, value):
+		assert isinstance(value, float) or value is None
+		self._probability = value
+
 
 
 
@@ -175,12 +184,16 @@ class Model:
 		return value if operation is None else operation(value)
 
 	def _get_save_dict (self):
-		return {'pmean':     self.pmean,
-		        'old_pmean': self._save_var('_old_pmean')}
+		return {
+				'pmean':       self.pmean,
+		        'old_pmean':   self._save_var('_old_pmean'),
+		        'probability': self.probability
+		        }
 
 	def _load_save_dict (self, save_dict):
-		self.pmean      = d['pmean']
-		self._old_pmean = d['old_pmean']
+		self.pmean        = d['pmean']
+		self._old_pmean   = d['old_pmean']
+		self._probability = d['probability']
 
 	def save (self, filename):
 		assert isinstance(filename, str)
