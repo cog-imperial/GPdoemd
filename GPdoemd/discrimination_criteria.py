@@ -1,14 +1,36 @@
 
 import numpy as np 
 from scipy.stats import multivariate_normal as mv
-from scipy.stats import chi2
+from scipy.stats import chi2 as scipy_chi2
 
 from pdb import set_trace as st
 
 __all__ = ['gaussian_likelihood_update', 'chi2_test', 'aicw']
 
+
 """
-Gaussian likelihood with update
+Gaussian likelihood
+"""
+def gaussian_likelihood (Y, M, S):
+	"""
+	y     [ N x E ]
+	M     [ N x M x E ]
+	S     [ N x M x E x E ]
+	"""
+	logpis = []
+	for i in range( M.shape[1] ):
+		logpi = np.sum([ mv.logpdf(y,m[i],s[i]) for y,m,s in zip(Y,M,S) ])
+		logpis.append(logpi)
+	pis = []
+	for p1 in logpis:
+		pi = 0
+		for p2 in logpis:
+			pi += np.exp( np.min(( np.max((p2 - p1, -1000)), 100 )))
+		pis.append(1. / pi)
+	return np.array( pis )
+
+"""
+Update Gaussian likelihood
 """
 def gaussian_likelihood_update (y, M, S, prior):
 	"""
@@ -32,7 +54,7 @@ def chi2 (Y, M, S, D):
 	"""
 	N, E = Y.shape
 	maha = _maha_sum(Y, M, S)
-	return 1. - chi2.cdf(maha, N*E - D)
+	return 1. - scipy_chi2.cdf(maha, N*E - D)
 
 # Summed squared Mahalanobis distance
 def _maha_sum (Y, F, S):
@@ -69,7 +91,6 @@ def aicw (Y, M, S, D):
 	S     [ N x M x E x E ]
 	D     [ M ]
 	"""
-
 	# Log Gaussian likelihood
 	logL = []
 	for i in range( M.shape[1] ):
