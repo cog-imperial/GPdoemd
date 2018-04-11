@@ -149,7 +149,7 @@ class DataGen (MicroMacroModel):
 
 	def __call__ (self, x):
 		model = [M1, M2, M3, M4, M5][self.truemodel]
-		state = model(x, self.p)
+		state = model()(x, self.p)
 		noise = np.sqrt(self.measvar) * np.random.randn(self.n_outputs)
 		return np.abs( state + noise )
 
