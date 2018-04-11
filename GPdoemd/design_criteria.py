@@ -209,6 +209,8 @@ def _reshape (mu, s2, noise_var=None, pps=None):
 	""" MODEL PROBABILITIES """
 	if pps is None:
 		pps = np.ones(M)
+	if isinstance(pps, (list,tuple)):
+		pps = np.array(pps)
 
 	assert pps.shape == (M,) and np.all(pps >= 0)
 	pps = pps / np.sum(pps)

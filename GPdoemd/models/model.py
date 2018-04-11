@@ -4,7 +4,7 @@ from os.path import isfile
 import numpy as np 
 import pickle
 
-from ..marginals import Analytic, Numerical
+from ..marginal import Analytic, Numerical
 
 from pdb import set_trace as st
 
@@ -82,6 +82,12 @@ class Model:
 		assert isinstance(value, np.ndarray)
 		assert np.all( value > 0. )
 		self._meas_noise_var = value
+	@property
+	def meas_noise_covar (self):
+		if self.meas_noise_var.ndim == 1:
+			return np.diag( self.meas_noise_var )
+		else:
+			return self.meas_noise_var
 
 	## Number of design variables
 	@property
@@ -191,9 +197,9 @@ class Model:
 		        }
 
 	def _load_save_dict (self, save_dict):
-		self.pmean        = d['pmean']
-		self._old_pmean   = d['old_pmean']
-		self._probability = d['probability']
+		self.pmean        = save_dict['pmean']
+		self._old_pmean   = save_dict['old_pmean']
+		self._probability = save_dict['probability']
 
 	def save (self, filename):
 		assert isinstance(filename, str)

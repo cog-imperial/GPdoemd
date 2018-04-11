@@ -7,7 +7,7 @@ from GPy.kern import Kern as GPyKern
 
 from .model import Model
 from ..kernels import Kern
-from ..marginals import GPMarginal
+from ..marginal import GPMarginal
 from ..utils import binary_dimensions
 
 from pdb import set_trace as st
@@ -85,7 +85,7 @@ class GPModel (Model):
 	## Training targets
 	@property
 	def Y (self):
-		return self._Y
+		return None if not hasattr(self,'_Y') else self._Y
 	@Y.setter
 	def Y (self, value):
 		if value is not None:
@@ -254,6 +254,7 @@ class GPModel (Model):
 
 
 
+
 	"""
 	Surrogate model
 	"""
@@ -388,6 +389,12 @@ class GPModel (Model):
 
 		return self.backtransform_prediction(M,S)
 
+	def clear_surrogate_model (self):
+		del self.gps
+		del self.hyp
+		self.clear_training_data()
+		if not self.gprm is None:
+			del self.gprm
 
 
 
@@ -427,6 +434,7 @@ class GPModel (Model):
 		xnew = self.transform_x(xnew)
 		M, S = self.gprm(xnew)
 		return self.backtransform_prediction(M, S)
+
 
 
 
