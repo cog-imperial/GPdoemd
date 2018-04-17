@@ -1,0 +1,15 @@
+*.pyc
+*.pyo
+*.egg-info
+.coverage
+*.cover
+__pycache__
+.cache
+.eggs
+.hypothesis
+.tox
+htmlcov
+venv
+docs/_buildi
+.DS_Store
+

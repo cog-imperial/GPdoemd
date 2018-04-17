@@ -1,45 +1,6 @@
 
 import numpy as np
 
-
-def _reshape (mu,s2,noise_var=None,pps=None):
-	""" MEAN"""
-	if mu.ndim == 2:
-		mu = np.expand_dims( mu, axis=2 )
-	n, M, E = mu.shape
-
-	""" NOISE VARIANCE """
-	# None
-	if noise_var is None: 
-		noise_var = np.zeros((E,E))
-
-	# Scalar
-	if isinstance(noise_var,(int,float)):
-		noise_var = np.array([noise_var])
-
-	# Numpy vector
-	if noise_var.ndim == 1:
-		tmp = np.eye(E)
-		np.fill_diagonal(tmp, noise_var)
-		noise_var = tmp
-			
-	assert noise_var.shape == (E,E)
-	assert np.all( np.diag(noise_var) >= 0. )
-
-	""" COVARIANCE """
-	s2  = s2.reshape( (n, M, E) )
-
-	""" MODEL PROBABILITIES """
-	if pps is None:
-		pps = np.ones(M)
-
-	assert pps.shape == (M,) and np.all(pps >= 0)
-	pps = pps / np.sum(pps)
-
-	# Return
-	return mu, s2, noise_var, pps, n, M, E
-
-
 """
 Functions for computing various design criteria.
 Used for experimental design for model selection.
@@ -60,13 +21,9 @@ Inputs:
 
 Output:
 	Design criterion	[ n ]	
-
-This code does not come with any guarantees or warranty of any kind.
-Copyright (C) 2018, Simon Olofsson, simon.olofsson15@imperial.ac.uk
 """
 
-
-def HR (mu,s2,noise_var=None,pps=None):
+def HR (mu, s2, noise_var=None, pps=None):
 	"""
 	Hunter and Reiner's design criterion
 
@@ -83,7 +40,7 @@ def HR (mu,s2,noise_var=None,pps=None):
 	return dc
 
 
-def BH (mu,s2,noise_var=None,pps=None):
+def BH (mu, s2, noise_var=None, pps=None):
 	"""
 	Box and Hill's design criterion, extended to multiresponse 
 	models by Prasad and Someswara Rao.
@@ -96,7 +53,7 @@ def BH (mu,s2,noise_var=None,pps=None):
 		discrimination in multiresponse systems.
 		Chem. Eng. Sci. 32:1411-1418
 	"""
-	mu, s2, noise_var, pps, n, M, E = _reshape(mu,s2,noise_var,pps)
+	mu, s2, noise_var, pps, n, M, E = _reshape(mu, s2, noise_var, pps)
 
 	s2 += noise_var
 	iS  = np.linalg.inv(s2)
@@ -112,7 +69,7 @@ def BH (mu,s2,noise_var=None,pps=None):
 	return 0.5*dc
 
 
-def BF (mu,s2,noise_var=None,pps=None):
+def BF (mu, s2, noise_var=None, pps=None):
 	"""
 	Buzzi-Ferraris et al.'s design criterion.
 
@@ -129,7 +86,7 @@ def BF (mu,s2,noise_var=None,pps=None):
 		discrimination among rival multiresponse models
 		Chem. Eng. Sci. 45(2):477-481
 	"""
-	mu, s2, noise_var, _, n, M, _ = _reshape(mu,s2,noise_var,None)
+	mu, s2, noise_var, _, n, M, _ = _reshape(mu, s2, noise_var, None)
 
 	s2 += noise_var
 	dc  = np.zeros(n)
@@ -143,7 +100,7 @@ def BF (mu,s2,noise_var=None,pps=None):
 	return dc
 
 
-def AW (mu,s2,noise_var=None,pps=None):
+def AW (mu, s2, noise_var=None, pps=None):
 	"""
 	Modified Expected Akaike Weights Decision Criterion.
 
@@ -152,7 +109,7 @@ def AW (mu,s2,noise_var=None,pps=None):
 		Model Candidates: The AWDC Criterion.
 		In: Ind. Eng. Chem. Res. 49:913-919
 	"""
-	mu, s2, noise_var, pps, n, M, _ = _reshape(mu,s2,noise_var,pps)
+	mu, s2, noise_var, pps, n, M, _ = _reshape(mu, s2, noise_var, pps)
 
 	iS = np.linalg.inv(s2 + noise_var)
 	dc = np.zeros((n,M))
@@ -164,11 +121,13 @@ def AW (mu,s2,noise_var=None,pps=None):
 	return np.sum( (1./dc) * pps, axis=1 )
 
 
-def _JR (mu,s2,noise_var=None,pps=None):
+def JR (mu, s2, noise_var=None, pps=None):
 	"""
 	Quadratic Jensen-Renyi divergence.
+
+	- Olofsson et al. (Future publication)
 	"""
-	mu, s2, noise_var, pps, _, M, E = _reshape(mu,s2,noise_var,pps)
+	mu, s2, noise_var, pps, _, M, E = _reshape(mu, s2, noise_var, pps)
 
 	# Pre-compute
 	iS   = np.linalg.inv(s2 + noise_var)
@@ -213,3 +172,53 @@ def _JR (mu,s2,noise_var=None,pps=None):
 
 	""" Sum first and second term """
 	return T1 + T2
+
+
+"""
+Support methods
+"""
+
+# Reshape inputs
+def _reshape (mu, s2, noise_var=None, pps=None):
+	""" MEAN"""
+	if mu.ndim == 2:
+		mu = np.expand_dims( mu, axis=2 )
+	n, M, E = mu.shape
+
+	""" NOISE VARIANCE """
+	# None
+	if noise_var is None: 
+		noise_var = np.zeros( (E, E) )
+
+	# Scalar
+	if isinstance(noise_var, (int,float)):
+		noise_var = np.array([noise_var])
+
+	# Numpy vector
+	if noise_var.ndim == 1:
+		tmp = np.eye(E)
+		np.fill_diagonal(tmp, noise_var)
+		noise_var = tmp
+			
+	assert noise_var.shape == (E, E)
+	assert np.all( np.diag(noise_var) >= 0. )
+
+	""" COVARIANCE """
+	s2  = s2.reshape( (n, M, E, E) )
+
+	""" MODEL PROBABILITIES """
+	if pps is None:
+		pps = np.ones(M)
+	if isinstance(pps, (list,tuple)):
+		pps = np.array(pps)
+
+	assert pps.shape == (M,) and np.all(pps >= 0)
+	pps = pps / np.sum(pps)
+
+	return mu, s2, noise_var, pps, n, M, E
+
+
+
+
+
+
