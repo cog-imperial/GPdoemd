@@ -122,13 +122,14 @@ class Model:
 	def pmean (self, value):
 		if value is not None:
 			assert value.shape == (self.dim_p,)
-			self._pmean = value
-			if not hasattr(self,'_old_pmean'):
-				self._old_pmean = None
+		self._pmean = value
+		if not hasattr(self,'_old_pmean'):
+			self._old_pmean = None
 	@pmean.deleter
 	def pmean (self):
-		self._old_pmean = None if self._pmean is None else self._pmean.copy()
+		self._old_pmean = None if self.pmean is None else self.pmean.copy()
 		self._pmean     = None
+		self.pmean      = None
 
 	def param_estim (self, Xdata, Ydata, method):
 		self.pmean = method(self, Xdata, Ydata)
