@@ -1,7 +1,7 @@
 
 import unittest
 import numpy as np 
-from GPdoemd.model import Model
+from GPdoemd.models import Model
 
 class TestClass (unittest.TestCase):
 
@@ -45,7 +45,7 @@ class TestClass (unittest.TestCase):
 		self.assertEqual(self.M.zmin, zmin)
 
 	def test_zmax (self):
-		zmax = np.array([1,1])
+		zmax = np.array([ 1, 1])
 		self.assertEqual(self.M.zmax, zmax)
 
 	def test_ymin (self):
@@ -53,7 +53,7 @@ class TestClass (unittest.TestCase):
 		self.assertEqual(self.M.ymin, ymin)
 
 	def test_ymax (self):
-		ymax = np.array([1,1])
+		ymax = np.array([ 1, 1])
 		self.assertEqual(self.M.ymax, ymax)
 
 	def backtrans_y_min (self):
@@ -63,7 +63,7 @@ class TestClass (unittest.TestCase):
 
 	def backtrans_y_max (self):
 		ymax = np.array([80,40])
-		yt   = self.M.backtransform_y(np.array([1,1]))
+		yt   = self.M.backtransform_y(np.array([ 1, 1]))
 		self.assertEqual(yt, ymax)
 
 if __name__ == '__main__':
