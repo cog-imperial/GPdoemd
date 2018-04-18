@@ -14,7 +14,6 @@ def expand_dims (a,axis):
 
 def binary_dimensions (Z, binary_variables):
 	"""
-
 	Inputs
 		Z 					Array of design variables (+ parameter (optional))
 		binary_variables 	List of indices for binary design variables
