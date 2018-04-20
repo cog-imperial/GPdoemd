@@ -36,8 +36,8 @@ class Analytic:
 	
 	def compute_param_covar (self, Xdata, meas_noise_var):
 		# Dimensions
-		E     = self.num_outputs
-		D     = len(self.param_mean)
+		E = self.num_outputs
+		D = len(self.param_mean)
 
 		if isinstance(meas_noise_var, (int, float)):
 			meas_noise_var = np.array([meas_noise_var] * E)
