@@ -193,16 +193,16 @@ class Model:
 		return value if operation is None else operation(value)
 
 	def _get_save_dict (self):
+		#'probability': self.probability
 		return {
 				'pmean':       self.pmean,
-		        'old_pmean':   self._save_var('_old_pmean'),
-		        'probability': self.probability
+		        'old_pmean':   self._save_var('_old_pmean')
 		        }
 
 	def _load_save_dict (self, save_dict):
 		self.pmean        = save_dict['pmean']
 		self._old_pmean   = save_dict['old_pmean']
-		self._probability = save_dict['probability']
+		#self._probability = save_dict['probability']
 
 	def save (self, filename):
 		assert isinstance(filename, str)

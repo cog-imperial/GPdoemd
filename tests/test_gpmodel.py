@@ -9,8 +9,6 @@ from GPdoemd.models import GPModel
 from GPdoemd.marginal import TaylorFirstOrder
 from GPdoemd.kernels import RBF
 
-from pdb import set_trace as st
-
 """
 SET UP MODEL ONCE
 """
@@ -19,10 +17,8 @@ x_bounds = np.array([[10., 20.], [5., 8.]])
 p_bounds = np.array([[ 2.,  4.], [3., 5.]])
 z_bounds = np.array( x_bounds.tolist() + p_bounds.tolist() )
 
-def f (x, p, grad=False):
-	if not grad: 
-		return x * p
-	return x * p, x 
+def f (x, p):
+	return x * p
 
 ymin = np.array([20,15])
 ymax = np.array([80,40])
@@ -56,17 +52,10 @@ TESTS
 
 class TestGPModel:
 
-	def test_call(self):
-		p = np.array([3., 4.])
-		F = M.call(X, p)
-		assert np.all(F == f(X, p))
-
 	"""
 	Dimensions
 	"""
 	def test_dim_x (self):
-		assert M.dim_x == 2
-		assert M.dim_p == 2
 		assert M.dim_b == 0
 
 	"""
@@ -254,6 +243,8 @@ class TestGPModel:
 
 		Mt.pmean = np.array([3., 4.])
 		M,S = Mt.predict(Xs)
+		assert M.shape == (len(Xs),2)
+		assert S.shape == (len(Xs),2)
 
 
 
@@ -269,6 +260,8 @@ class TestGPModel:
 		Mt.gp_surrogate(Z=Z, Y=Y, kern_x=RBF, kern_p=RBF)
 		Mt.marginal_init_and_compute_covar(TaylorFirstOrder, Xs)
 		M,S = Mt.marginal_predict(Xs)
+		assert M.shape == (len(Xs),2)
+		assert S.shape == (len(Xs),2,2)
 
 		# Clear surrogate model
 		Mt.clear_surrogate_model()

@@ -295,8 +295,6 @@ class GPModel (Model):
 		dim    = dim_x + dim_p
 
 		R, I, J = binary_dimensions(Z, self.binary_variables)
-		#prange  = self.dim_b + np.arange(dim_x, dim)
-		#I       = np.array( I.tolist() + prange.tolist() )
 
 		assert not np.any([ value is None for value in [Z, Y, kern_x, kern_p] ])
 
@@ -411,15 +409,14 @@ class GPModel (Model):
 		return None if not hasattr(self,'_gprm') else self._gprm
 	@gprm.setter
 	def gprm (self, value):
-		assert isinstance(value, (GPMarginal))
+		assert isinstance(value, GPMarginal)
 		self._gprm = value
 	@gprm.deleter
 	def gprm (self):
 		self._gprm = None
 
 	def marginal_init (self, method):
-		pmean     = self.transform_p(self.pmean)
-		self.gprm = method( self, pmean )
+		self.gprm = method( self, self.transform_p(self.pmean) )
 
 	def marginal_compute_covar (self, Xdata):
 		if self.gprm is None:
@@ -428,15 +425,10 @@ class GPModel (Model):
 		mvar  = self.transformed_meas_noise_var
 		self.gprm.compute_param_covar(Xdata, mvar)
 
-	def marginal_init_and_compute_covar (self, method, Xdata):
-		self.marginal_init(method)
-		self.marginal_compute_covar(Xdata)
-
 	def marginal_predict (self, xnew):
 		if self.gprm is None:
 			return None
-		xnew = self.transform_x(xnew)
-		M, S = self.gprm(xnew)
+		M, S = self.gprm( self.transform_x(xnew) )
 		return self.backtransform_prediction(M, S)
 
 
