@@ -52,7 +52,9 @@ class GPModel (Model):
 			self._Z    = self.transform_z(value)
 	@Z.deleter
 	def Z (self):
-		self._Z = None
+		self._Z    = None
+		self._zmin = None
+		self._zmax = None
 	@property
 	def zmin (self):
 		return None if not hasattr(self,'_zmin') else self._zmin
@@ -95,7 +97,9 @@ class GPModel (Model):
 			self._Y    = self.transform_y(value)
 	@Y.deleter
 	def Y (self):
-		self._Y = None
+		self._Y    = None
+		self._ymin = None
+		self._ymax = None
 	@property
 	def ymin (self):
 		return None if not hasattr(self,'_ymin') else self._ymin
@@ -122,7 +126,7 @@ class GPModel (Model):
 	"""
 	Variable, parameter and target transformations
 	"""
-	def _none_check (self,arglist):
+	def _none_check (self, arglist):
 		if np.any([a is None for a in arglist]):
 			warnings.warn('Transform value is None')
 			return True
