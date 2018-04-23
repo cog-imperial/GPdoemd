@@ -1,17 +1,6 @@
 
 import numpy as np
 
-"""
-def expand_dims (a,axis):
-	## Expand dims where axis can be a list
-	if isinstance(axis,int):
-		return np.expand_dims(a,axis)
-	b = a.copy()
-	for ax in axis:
-		b = np.expand_dims(b,ax)
-	return b
-"""
-
 def binary_dimensions (Z, binary_variables):
 	"""
 	Inputs
@@ -29,7 +18,7 @@ def binary_dimensions (Z, binary_variables):
 		n1, n2 = Z.shape
 		return [0], np.ones(n2,dtype=bool), np.zeros(n1,dtype=bool)
 
-	B = np.meshgrid( *( [[-1,1]] * lb ))
+	B = np.meshgrid( *( [[-1, 1]] * lb ) )
 	B = np.vstack( map( np.ravel, B) ).T
 
 	I  = range( Z.shape[1] )
@@ -42,5 +31,5 @@ def binary_dimensions (Z, binary_variables):
 			if np.all(b * z > 0):
 				J.append(j)
 				break
-	return range(lb), np.array(I), np.array(J)
+	return range( 2**lb ), np.array(I), np.array(J)
 
