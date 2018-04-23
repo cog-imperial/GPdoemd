@@ -1,6 +1,7 @@
 
 import numpy as np 
-import scipy.optimize
+from scipy.optimize import differential_evolution
+from scipy.optimize import least_squares as lstsq
 
 
 def residuals (p, model, X, Y):
@@ -23,7 +24,7 @@ def diff_evol (model, X, Y):
 		return np.sum( L**2 )
 
 	bounds = model.p_bounds.tolist()
-	res    = scipy.optimize.differential_evolution(loss_function, bounds)
+	res    = differential_evolution(loss_function, bounds)
 	return res['x']
 
 
@@ -43,7 +44,7 @@ def least_squares (model, X, Y):
 		p0 = 0.5 * np.sum(model.p_bounds, axis=1)
 
 	bounds = model.p_bounds.T.tolist()
-	res    = scipy.optimize.least_squares(loss_function, p0, bounds=bounds)
+	res    = lstsq(loss_function, p0, bounds=bounds)
 	return res['x']
 
 
