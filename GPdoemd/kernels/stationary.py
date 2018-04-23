@@ -6,14 +6,16 @@ from .kern import Kern
 
 class Stationary (Kern):
 	def d_r_d_x (self, X1, X2):
+		# d r(X1,X2) / d X1
 		if X1.shape[1] > self.input_dim:
 			X1 = X1[:, self.active_dims]
 			X2 = X2[:, self.active_dims]
 		dist = (X1[:, None, :] - X2[None, :, :])
 		dr   = self._inv_dist(X1, X2)[:,:,None] * dist / self.lengthscale**2
-		return dr
+		return dr # ( X1.shape[0], X2.shape[0], X1.shape[1] )
 
 	def d2_r_d_x2 (self, X1, X2):
+		# d^2 r(X1,X2) / d X1^2
 		if X1.shape[1] > self.input_dim:
 			X1 = X1[:, self.active_dims]
 			X2 = X2[:, self.active_dims]
@@ -22,15 +24,17 @@ class Stationary (Kern):
 		ir   = self._inv_dist(X1, X2)[:,:,None,None]
 		rr   = dist[:,:,:,None] * dist[:,:,None,:]
 		ddr  = ir * ( np.diag(iL)[None,None,:,:] - ir**2 * rr )
-		return ddr
+		return ddr # ( X1.shape[0], X2.shape[0], X1.shape[1], X1.shape[1] )
 
 	def d_k_d_x (self, X1, X2):
+		# d k(X1,X2) / d X1
 		X1 = X1[:, self.active_dims]
 		X2 = X2[:, self.active_dims]
-		dk = self.dK_dr_via_X(X1, X2)
-		return dk[:,:,None] * self.d_r_d_x(X1,X2)
+		dk = self.dK_dr_via_X(X1, X2)[:,:,None] * self.d_r_d_x(X1,X2)
+		return dk  # ( X1.shape[0], X2.shape[0], X1.shape[1] )
 
 	def d2_k_d_x2 (self, X1, X2):
+		# d^2 k(X1,X2) / d X1^2
 		X1  = X1[:, self.active_dims]
 		X2  = X2[:, self.active_dims]
 
@@ -42,7 +46,7 @@ class Stationary (Kern):
 		ddr = self.d2_r_d_x2(X1, X2)
 		dk  = dk[:,:,None,None] * ddr
 
-		return ddk + dk
+		return ddk + dk # ( X1.shape[0], X2.shape[0], X1.shape[1], X1.shape[1] )
 
 	def dK2_drdr_via_X(self, X1, X2):
 		return self.dK2_drdr(self._scaled_dist(X1, X2))
