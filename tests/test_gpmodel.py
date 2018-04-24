@@ -6,8 +6,8 @@ import warnings
 from GPy.models import GPRegression
 
 from GPdoemd.models import GPModel
-from GPdoemd.marginal import TaylorFirstOrder
 from GPdoemd.kernels import RBF
+from GPdoemd.marginal import TaylorFirstOrder
 
 """
 SET UP MODEL ONCE

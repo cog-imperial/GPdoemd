@@ -5,8 +5,6 @@ import numpy as np
 from GPy.models import GPRegression
 import GPdoemd.kernels
 
-from pdb import set_trace as st 
-
 
 """
 SET-UP
