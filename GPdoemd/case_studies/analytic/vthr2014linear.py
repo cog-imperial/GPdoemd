@@ -76,15 +76,11 @@ class DataGen (M3):
 
 	def __call__ (self,x):
 		state = super(DataGen, self).__call__(x,self.p)
-		sigma = np.sqrt(self.measvar)
-		meas  = np.array([s + sigma*np.random.randn() for s in state])
-		return meas
+		noise = np.sqrt(self.measvar) * np.random.randn()
+		return state + noise
 
 """
 Get model functions
 """
 def get ():
 	return DataGen(), [M1(),M2(),M3(),M4()]
-
-
-

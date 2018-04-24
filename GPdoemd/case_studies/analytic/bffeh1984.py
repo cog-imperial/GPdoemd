@@ -74,7 +74,7 @@ class M3 (BFFEH1984Model):
 		dm1 = 1.+K3*x2
 		dm2 = 1.+K4*x1
 		y1  = x1*x2 / dm1**2
-		y2  = x1*x2 / denom2**2
+		y2  = x1*x2 / dm2**2
 		if not grad: return np.array([k1*y1, k2*y2])
 
 		dy1 = [y1, 0., -2.*k1*x2*y1/dm1,  0.]
@@ -116,7 +116,7 @@ class DataGen (M1):
 		return [0.1, 0.01, 0.1, 0.01]
 
 	def __call__ (self,x):
-		state = super(Datagen,self).__call__(x,self.p)
+		state = super().__call__(x, self.p)
 		noise = np.sqrt(self.measvar) * np.random.randn(self.n_outputs)
 		return state + noise
 
