@@ -3,11 +3,6 @@ import numpy as np
 from scipy.stats import multivariate_normal as mv
 from scipy.stats import chi2 as scipy_chi2
 
-from pdb import set_trace as st
-
-__all__ = ['gaussian_likelihood_update', 'chi2_test', 'aicw']
-
-
 """
 Gaussian likelihood
 """
