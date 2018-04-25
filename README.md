@@ -6,5 +6,5 @@ Design of experiments for model discrimination using Gaussian process surrogate 
 Package requires:
 * numpy
 * scipy 
-* GPy
+* [GPy](https://github.com/SheffieldML/GPy)
 
