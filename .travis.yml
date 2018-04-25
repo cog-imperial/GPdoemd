@@ -1,12 +1,10 @@
 sudo: false
 language: python
 python:
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
 os:
-  - osx
   - linux
 install:
   - pip install -r requirements.txt
