@@ -38,13 +38,13 @@ class Numerical:
 		E   = self.num_outputs
 		D   = len( self.param_mean )
 		dmu = np.zeros( (N, E, D) )
-		Y   = np.array([self.call(x,self.param_mean) for x in X])
+		Y   = np.array([ self.call(x, self.param_mean) for x in X ])
 		# Numerical differentiation
 		for d in range(D):
 			p0    = np.zeros(D)
 			p0[d] = self.eps[d]
 			for n in range(N):
-				yp = self.call(X[n],self.param_mean+p0)
+				yp = self.call(X[n], self.param_mean+p0)
 				dmu[n,:,d] = (yp - Y[n]) / self.eps[d]
 		return dmu
 

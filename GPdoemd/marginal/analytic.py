@@ -23,6 +23,7 @@ class Analytic:
 	def d_mu_d_p (self, X):
 		grad = lambda x: self.call(x, self.param_mean, grad=True)[1]
 		dmu  = np.array([ grad(x) for x in X ])
+		assert dmu.ndim == 3
 		return dmu
 
 	def d2_mu_d_p2 (self, gp, X):
