@@ -44,7 +44,7 @@ M.gp_surrogate(Zs, Ys, RBF, RBF)
 
 h_len = len( M.gps[0][0][:] )
 hyp   = np.array([10] + [1e-1]*E + [10] + [1e-1]*E + [1e-5])
-hyps  = [[ np.random.rand(h_len) * hyp for _ in gps] for gps in M.gps]
+hyps  = [[ hyp for _ in gps] for gps in M.gps]
 M.hyp = hyps
 M.gp_load_hyp()
 
@@ -66,7 +66,7 @@ class TestMarginal:
 		m = marg( M, ptrue )
 
 		def diff (S1,S2):
-			return np.abs(S1-S2) / np.abs(S1+S2+1e-300)
+			return np.abs(S1 - S2) / np.abs(S1 + S2 + 1e-300)
 
 		def sigma (order):
 			s = [
@@ -115,3 +115,7 @@ class TestMarginal:
 		mu, s2 = m(Xs)
 		assert mu.shape == (N,E)
 		assert s2.shape == (N,E,E)
+
+
+T = TestMarginal()
+T.test_compute_param_covar()
