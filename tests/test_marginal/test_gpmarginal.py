@@ -7,8 +7,8 @@ from pdb import set_trace as st
 from GPdoemd.models import GPModel
 from GPdoemd.kernels import RBF
 from GPdoemd.marginal import GPMarginal as marg
-from GPdoemd.marginal import TaylorFirstOrder  as TF1
-from GPdoemd.marginal import TaylorSecondOrder as TF2
+from GPdoemd.marginal import TaylorFirstOrder
+from GPdoemd.marginal import TaylorSecondOrder
 
 """
 SET UP MODEL ONCE
@@ -101,7 +101,7 @@ class TestMarginal:
 		assert np.all( d < 1e-6 )
 
 	def test_Taylor_first_order (self):
-		m = TF1( M, ptrue )
+		m = TaylorFirstOrder( M, ptrue )
 		m.compute_param_covar(Xs, mvar)
 
 		mu, s2 = m(Xs)
@@ -109,7 +109,7 @@ class TestMarginal:
 		assert s2.shape == (N,E,E)
 
 	def test_Taylor_second_order (self):
-		m = TF2( M, ptrue )
+		m = TaylorSecondOrder( M, ptrue )
 		m.compute_param_covar(Xs, mvar)
 
 		mu, s2 = m(Xs)
