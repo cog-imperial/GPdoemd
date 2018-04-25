@@ -16,7 +16,7 @@ setup(
     license=about['__license__'],
     version=about['__version__'],
     packages=find_packages(exclude=['tests','docs']),
-    requires=['pyomo', 'numpy', 'mpmath'],
+    requires=['numpy', 'scipy'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest', 'pytest-cov'],
 )
