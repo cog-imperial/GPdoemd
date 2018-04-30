@@ -9,7 +9,7 @@ from ..marginal import Analytic, Numerical
 from pdb import set_trace as st
 
 class Model:
-	def __init__ (self, model_dict=None):
+	def __init__ (self, model_dict):
 		# Read dictionnary
 		self.name        = model_dict['name']
 		self.call        = model_dict['call']
