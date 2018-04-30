@@ -1,7 +1,7 @@
 
 import numpy as np 
 
-from .gpmarginal import GPMarginal
+from . import GPMarginal
 from ..utils import binary_dimensions
 
 """
@@ -31,7 +31,7 @@ class TaylorFirstOrder (GPMarginal):
 				if not np.any(Jr):
 					continue
 				i = np.ix_(Jr,[e1])
-				M[i], s2[i] = gp[r].predict(Z[Jr])
+				M[i], s2[i] = gp[r].predict_noiseless(Z[Jr])
 				""" d mu / d p """
 				dmu[Jr,e1]  = self.d_mu_d_p(gp[r], xnew[Jr])
 
