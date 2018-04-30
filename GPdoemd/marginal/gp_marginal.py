@@ -7,10 +7,11 @@ from ..utils import binary_dimensions
 Marginaliser class
 """
 class GPMarginal:
-	def __init__(self, model, param_mean):
+	def __init__(self, model, param_mean, sparse=False):
 		self.gps        = model.gps               # List of GPs
 		self.param_mean = param_mean              # Parameter mean
 		self.bin_var    = model.binary_variables  # Binary variable indices
+		self.sparse     = sparse                  # Sparse GP
 		
 	@property
 	def Sigma (self):
@@ -26,13 +27,14 @@ class GPMarginal:
 		return np.array([ x.tolist() + self.param_mean.tolist() for x in X ])
 
 	def d_mu_d_p (self, gp, X):
-		Z = self.get_Z(X)
+		Z   = self.get_Z(X)
+		gpX = gp.X if not self.sparse else gp.Z
 
 		# d k / d p
-		dk   = gp.kern.kernx.K(Z, gp.X)[:,:,None]
-		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gp.X)
+		dk   = gp.kern.kernx.K(Z, gpX)[:,:,None]
+		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gpX)
 		# beta := inv(K + sigma*I) * y
-		beta = gp.posterior.woodbury_vector.reshape([1, len(gp.X), 1])
+		beta = gp.posterior.woodbury_vector.reshape([1, len(gpX), 1])
 		# d mu / d p
 		dmu  = np.sum( beta * dk, axis=1 )
 		return dmu
@@ -41,10 +43,10 @@ class GPMarginal:
 		Z = self.get_Z(X)
 
 		# d^2 k / d p^2
-		ddk  = gp.kern.kernx.K(Z, gp.X)[:,:,None,None]
-		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gp.X)
+		ddk  = gp.kern.kernx.K(Z, gpX)[:,:,None,None]
+		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gpX)
 		# beta := inv(K + sigma*I) * y
-		beta = gp.posterior.woodbury_vector.reshape([1, len(gp.X), 1, 1])
+		beta = gp.posterior.woodbury_vector.reshape([1, len(gpX), 1, 1])
 		# d mu / d p
 		ddmu = np.sum( beta * ddk, axis=1 )
 		return ddmu
@@ -54,14 +56,14 @@ class GPMarginal:
 
 	def d2_s2_d_p2 (self, gp, X):
 		Z = self.get_Z(X)
-		k = gp.kern.K(Z, gp.X)
+		k = gp.kern.K(Z, gpX)
 
 		# d k / d p
-		dk   = gp.kern.kernx.K(Z, gp.X)[:,:,None]
-		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gp.X)
+		dk   = gp.kern.kernx.K(Z, gpX)[:,:,None]
+		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gpX)
 		# d^2 k / d p^2
-		ddk  = gp.kern.kernx.K(Z, gp.X)[:,:,None,None]
-		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gp.X)
+		ddk  = gp.kern.kernx.K(Z, gpX)[:,:,None,None]
+		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gpX)
 
 		iK   = gp.posterior.woodbury_inv
 		kiK  = np.matmul(k,iK)
