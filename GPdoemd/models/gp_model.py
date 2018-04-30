@@ -5,15 +5,14 @@ import warnings
 from GPy.models import GPRegression
 from GPy.kern import Kern as GPyKern
 
-from .model import Model
+from . import Model
 from ..kernels import Kern
 from ..marginal import GPMarginal
 from ..utils import binary_dimensions
 
-from pdb import set_trace as st
 
 class GPModel (Model):
-	def __init__ (self, model_dict=None):
+	def __init__ (self, model_dict):
 		super().__init__(model_dict)
 		# Optional parameters
 		self.gp_noise_var     = model_dict.get('gp_noise_var', 1e-6)
@@ -387,7 +386,7 @@ class GPModel (Model):
 
 			for e in range( self.num_outputs ):
 				I          = np.ix_(Jr,[e])
-				M[I], S[I] = self.gps[e][r].predict(znew[Jr])
+				M[I], S[I] = self.gps[e][r].predict_noiseless(znew[Jr])
 
 		return self.backtransform_prediction(M,S)
 
@@ -433,8 +432,6 @@ class GPModel (Model):
 
 
 
-
-
 	"""
 	Save and load model
 	"""
@@ -450,6 +447,4 @@ class GPModel (Model):
 		self.Z   = save_dict['Z']
 		self.Y   = save_dict['Y']
 		self.hyp = save_dict['hyp']
-
-
 
