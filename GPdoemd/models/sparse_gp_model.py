@@ -59,11 +59,3 @@ class SparseGPModel (GPModel):
 				gp = SparseGPRegression(Zr, Yr, kern, num_inducing=numi)
 				gps[e].append(gp)
 		self.gps = gps
-
-
-
-	"""
-	Marginal surrogate predictions
-	"""
-	def marginal_init (self, method):
-		self.gprm = method( self, self.transform_p(self.pmean), True )
