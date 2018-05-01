@@ -7,7 +7,6 @@ from GPy.models import SparseGPRegression
 
 from GPdoemd.models import SparseGPModel
 from GPdoemd.kernels import RBF
-from GPdoemd.marginal import TaylorFirstOrder
 
 """
 SET UP MODEL ONCE
