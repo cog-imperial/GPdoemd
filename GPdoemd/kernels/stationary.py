@@ -2,9 +2,13 @@
 import numpy as np 
 
 import GPy.kern
-from .kern import Kern
+#from .kern import Kern
 
+"""
 class Stationary (Kern):
+	def __init__ (self,*args):
+		super().__init__(*args)
+	
 	def d_r_d_x (self, X1, X2):
 		# d r(X1,X2) / d X1
 		if X1.shape[1] > self.input_dim:
@@ -50,25 +54,24 @@ class Stationary (Kern):
 
 	def dK2_drdr_via_X(self, X1, X2):
 		return self.dK2_drdr(self._scaled_dist(X1, X2))
+"""
 
 
 """
 RBF / squared exponntial kernel
 """
-class RBF (GPy.kern.RBF, Stationary):
+class RBF (GPy.kern.RBF):
 	def __init__ (self, d, drange, name):
 		GPy.kern.RBF.__init__(
 			self, input_dim=d, active_dims=drange, name=name, ARD=True)
-		Stationary.__init__(self)
 
 """
 Exponential kernel
 """
-class Exponential (GPy.kern.Exponential, Stationary):
+class Exponential (GPy.kern.Exponential):
 	def __init__ (self, d, drange, name):
 		GPy.kern.Exponential.__init__(
 			self, input_dim=d, active_dims=drange, name=name, ARD=True)
-		Stationary.__init__(self)
 
 	def dK2_drdr(self, r):
 		return self.K_of_r(r)
@@ -76,11 +79,10 @@ class Exponential (GPy.kern.Exponential, Stationary):
 """
 Matern-3/2 kernel
 """
-class Matern32 (GPy.kern.Matern32, Stationary):
+class Matern32 (GPy.kern.Matern32):
 	def __init__ (self, d, drange, name):
 		GPy.kern.Matern32.__init__(
 			self, input_dim=d, active_dims=drange, name=name, ARD=True)
-		Stationary.__init__(self)
 
 	def dK2_drdr(self, r):
 		ar = np.sqrt(3.)*r
@@ -89,11 +91,10 @@ class Matern32 (GPy.kern.Matern32, Stationary):
 """
 Matern-5/2 kernel
 """
-class Matern52 (GPy.kern.Matern52, Stationary):
+class Matern52 (GPy.kern.Matern52):
 	def __init__ (self, d, drange, name):
 		GPy.kern.Matern52.__init__(
 			self, input_dim=d, active_dims=drange, name=name, ARD=True)
-		Stationary.__init__(self)
 
 	def dK2_drdr(self, r):
 		ar = np.sqrt(5)*r 
@@ -102,11 +103,10 @@ class Matern52 (GPy.kern.Matern52, Stationary):
 """
 Cosine kernel
 """
-class Cosine (GPy.kern.Cosine, Stationary):
+class Cosine (GPy.kern.Cosine):
 	def __init__ (self, d, drange, name):
 		GPy.kern.Cosine.__init__(
 			self, input_dim=d, active_dims=drange, name=name, ARD=True)
-		Stationary.__init__(self)
 
 	def dK2_drdr(self, r):
 		return -self.K_of_r(r)
@@ -114,11 +114,10 @@ class Cosine (GPy.kern.Cosine, Stationary):
 """
 Rational quadratic kernel
 """
-class RatQuad(GPy.kern.RatQuad, Stationary):
+class RatQuad(GPy.kern.RatQuad):
 	def __init__ (self, d, drange, name):
 		GPy.kern.RatQuad.__init__(
 			self, input_dim=d, active_dims=drange, name=name, ARD=True)
-		Stationary.__init__(self)
 
 	def dK2_drdr(self, r):
 		r2  = np.square(r)
