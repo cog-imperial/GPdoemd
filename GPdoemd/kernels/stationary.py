@@ -68,9 +68,9 @@ class RatQuad(GPy.kern.RatQuad):
 
 	def dK2_drdr(self, r):
 		r2  = np.square(r)
-		a   = (self.power + 2) * np.log1p(r2/2.)
-		dr1 = self.variance * self.power * (self.power + 1) * r2 * np.exp(-a)
-		dr2 = self.dK_dr(r) / r
+		lp  = np.log1p(r2 / 2.)
+		a   = (self.power + 1) * lp
+		dr1 = -self.variance * self.power * np.exp(-a)
+		a  += lp
+		dr2 = self.variance * self.power * (self.power + 1) * r2 * np.exp(-a)
 		return dr1 + dr2
-
-
