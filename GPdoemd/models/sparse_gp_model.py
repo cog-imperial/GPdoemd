@@ -3,21 +3,17 @@ import numpy as np
 import warnings
 
 from GPy.models import SparseGPRegression
-from GPy.kern import Kern as GPyKern
 
 from . import GPModel
-from ..kernels import Kern
-from ..marginal import GPMarginal
 from ..utils import binary_dimensions
 
-from pdb import set_trace as st
 
 class SparseGPModel (GPModel):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)
 
 	"""
-	Surrogate model
+	Sparse GP surrogate model
 	"""
 	def gp_surrogate (self, Z=None, Y=None, kern_x=None, kern_p=None, num_inducing=None):
 		self.set_training_data(Z, Y)	
