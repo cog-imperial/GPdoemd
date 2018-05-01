@@ -1,8 +1,8 @@
 
 import pytest
 import numpy as np 
-
-from pdb import set_trace as st
+import random 
+random.seed(12345)
 
 from GPdoemd.models import GPModel
 from GPdoemd.kernels import RBF
