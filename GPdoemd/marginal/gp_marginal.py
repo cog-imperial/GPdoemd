@@ -26,41 +26,11 @@ class GPMarginal:
 	def get_Z (self, X):
 		return np.array([ x.tolist() + self.param_mean.tolist() for x in X ])
 
-	"""
-	def d_mu_d_p (self, gp, X):
-		Z   = self.get_Z(X)
-		gpX = gp._predictive_variable
-
-		# d k / d p
-		dk   = gp.kern.kernx.K(Z, gpX)[:,:,None]
-		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gpX)
-		# beta := inv(K + sigma*I) * y
-		beta = gp.posterior.woodbury_vector.reshape([1, len(gpX), 1])
-		# d mu / d p
-		dmu  = np.sum( beta * dk, axis=1 )
-		return dmu
-	"""
-
 	def d_mu_d_p (self, gp, X):
 		Z   = self.get_Z(X)
 		dim = X.shape[1]
 		dmu = gp.predictive_gradients(Z)[0][:, dim:, 0]
 		return dmu
-
-	"""
-	def d2_mu_d_p2 (self, gp, X):
-		Z   = self.get_Z(X)
-		gpX = gp._predictive_variable
-
-		# d^2 k / d p^2
-		ddk  = gp.kern.kernx.K(Z, gpX)[:,:,None,None]
-		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gpX)
-		# beta := inv(K + sigma*I) * y
-		beta = gp.posterior.woodbury_vector.reshape([1, len(gpX), 1, 1])
-		# d mu / d p
-		ddmu = np.sum( beta * ddk, axis=1 )
-		return ddmu
-	"""
 
 	def d2_mu_d_p2 (self, gp, X):
 		Z   = self.get_Z(X)
@@ -71,42 +41,11 @@ class GPMarginal:
 		ddmu = np.sum( gp.kern.kernp.gradients_XX(tmp, Z, gpX), axis=1 )
 		return ddmu[:,dim:,dim:]
 
-	"""
-	def d_s2_d_p (self, gp, X):
-		return NotImplementedError
-	"""
-
 	def d_s2_d_p (self, gp, X):
 		Z   = self.get_Z(X)
 		dim = X.shape[1]
 		ds2 = gp.predictive_gradients(Z)[1][:, dim:]
 		return ds2
-
-	"""
-	def d2_s2_d_p2 (self, gp, X):
-		Z   = self.get_Z(X)
-		gpX = gp._predictive_variable
-		k   = gp.kern.K(Z, gpX)
-
-		# d k / d p
-		dk   = gp.kern.kernx.K(Z, gpX)[:,:,None]
-		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gpX)
-		# d^2 k / d p^2
-		ddk  = gp.kern.kernx.K(Z, gpX)[:,:,None,None]
-		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gpX)
-
-		iK   = gp.posterior.woodbury_inv
-		kiK  = np.matmul(k,iK)
-		kiK  = kiK[:,:,None,None]
-		ddk  = np.sum(kiK * ddk, axis=1)
-
-		dkiK   = np.matmul( np.transpose(dk,(0,2,1)), iK )
-		dkiK   = np.transpose(dkiK,(0,2,1))
-		dkiKdk = np.sum(dkiK[:,:,:,None] * dk[:,:,None,:], axis=1)
-		# d^2 s2 / d p^2
-		dds2ddp = -2. * ( ddk + dkiKdk )
-		return dds2ddp
-	"""
 
 	def d2_s2_d_p2 (self, gp, X):
 		Z   = self.get_Z(X)

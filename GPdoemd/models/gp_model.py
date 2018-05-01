@@ -3,7 +3,7 @@ import numpy as np
 import warnings
 
 from GPy.models import GPRegression
-from GPy.kern import Kern #as GPyKern
+from GPy.kern import Kern
 
 from . import Model
 from ..marginal import GPMarginal
