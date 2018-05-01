@@ -3,10 +3,9 @@ import numpy as np
 import warnings
 
 from GPy.models import GPRegression
-from GPy.kern import Kern as GPyKern
+from GPy.kern import Kern #as GPyKern
 
 from . import Model
-from ..kernels import Kern
 from ..marginal import GPMarginal
 from ..utils import binary_dimensions
 
@@ -224,7 +223,7 @@ class GPModel (Model):
 	@kern_x.setter
 	def kern_x (self, value):
 		if value is not None:
-			assert issubclass(value, GPyKern)
+			assert issubclass(value, Kern)
 			self._kern_x = value
 
 	## Model parameter kernel
