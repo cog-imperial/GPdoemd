@@ -17,6 +17,7 @@ d  = X.shape[1]
 dr = range(d)
 
 R  = np.random.rand(5, 7)
+R[2,2] = 0.
 
 """
 TESTS
