@@ -365,7 +365,10 @@ class GPModel (Model):
 				gp.update_model(True)
 
 
-	def gp_optimize (self, index=None):
+	def gp_optimize (self, *args):
+		self.gp_optimize(*args)
+
+	def gp_optimise (self, index=None):
 		if index is None:
 			index = range( self.num_outputs )
 		elif isinstance(index, int):
