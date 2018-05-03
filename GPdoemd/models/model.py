@@ -99,18 +99,6 @@ class Model:
 	def dim_p (self):
 		return len( self.p_bounds )
 
-	## Model probability measure
-	"""
-	@property
-	def probability (self):
-		return None if not hasattr(self,'_probability') else self._probability
-	@probability.setter
-	def probability (self, value):
-		assert isinstance(value, float) or value is None
-		self._probability = value
-	"""
-
-
 
 
 	"""
