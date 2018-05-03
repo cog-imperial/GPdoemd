@@ -90,20 +90,20 @@ class GPModel (Model):
 	def Y (self, value):
 		if value is not None:
 			assert value.shape[1] == self.num_outputs
-			self._ymin = np.min(value, axis=0)
-			self._ymax = np.max(value, axis=0)
-			self._Y    = self.transform_y(value)
+			self._ymean = np.mean(value, axis=0)
+			self._ystd  = np.std(value, axis=0)
+			self._Y     = self.transform_y(value)
 	@Y.deleter
 	def Y (self):
-		self._Y    = None
-		self._ymin = None
-		self._ymax = None
+		self._Y     = None
+		self._ymean = None
+		self._ystd  = None
 	@property
-	def ymin (self):
-		return None if not hasattr(self,'_ymin') else self._ymin
+	def ymean (self):
+		return None if not hasattr(self,'_ymean') else self._ymean
 	@property
-	def ymax (self):
-		return None if not hasattr(self,'_ymax') else self._ymax
+	def ystd (self):
+		return None if not hasattr(self,'_ystd') else self._ystd
 
 	## Number of binary variables
 	@property
@@ -130,77 +130,108 @@ class GPModel (Model):
 			return True
 		return False
 
-	# Transform to [-1, 1]-space
-	def transform (self, X, xmin, xmax):
-		if self._none_check([X, xmin, xmax]):
-			return np.NaN
+	## Transform input to interval [0,1]
+	def box_trans (self, X, xmin, xmax, reverse=False):
+		if reverse:
+			return xmin + X * (xmax - xmin)
+		return (X - xmin) / (xmax - xmin)
+
+	def box_var_trans (self, X, xmin, xmax, reverse=False):
+		m = xmax - xmin
+		if reverse:
+			return X * m**2
+		return X / m**2
+
+	def box_cov_trans (self, X, xmin, xmax, reverse=False):
+		m = xmax - xmin
+		if reverse:
+			return X * (m[:,None] * m[None,:])
+		return X / (m[:,None] * m[None,:])
+
+	# Transform input to interval [0,1]
+	"""
+	def box2_trans (self, X, xmin, xmax, reverse=False):
+		if reverse:
+			return 0.5 * (xmax + xmin + X * (xmax - xmin))
 		return (2 * X - xmax - xmin) / (xmax - xmin)
+	"""
 
-	# Transform to original space
-	def backtransform (self, X, xmin, xmax):
-		if self._none_check([X, xmin, xmax]):
+	# Transform such that input has mean zero
+	def mean_trans (self, X, mean, std, reverse=False):
+		if reverse:
+			return mean + X * std
+		return (X - mean) / std
+
+	def mean_var_trans (self, X, mean, std, reverse=False):
+		if reverse:
+			return X * std**2
+		return X / std**2
+
+	def mean_cov_trans (self, X, mean, std, reverse=False):
+		if reverse:
+			return X * (std[:,None] * std[None,:])
+		return X / (std[:,None] * std[None,:])
+
+	
+
+	# Transform to transform-space
+	def transform (self, trans, X, x1, x2, reverse=False):
+		if self._none_check([X, x1, x2]):
 			return np.NaN
-		return 0.5 * (xmax + xmin + X * (xmax - xmin))
+		return trans( X, x1, x2, reverse=reverse )
 
+	# Transform back to original space
+	def backtransform (self, trans, X, x1, x2):
+		return self.transform(trans, X, x1, x2, reverse=True)
+	
+	## Different transforms
 	def transform_x (self, X):
-		return self.transform(X, self.xmin, self.xmax)
+		return self.transform(self.box_trans, X, self.xmin, self.xmax)
+
 	def backtransform_x (self, X):
-		return self.backtransform(X, self.xmin, self.xmax)
+		return self.backtransform(self.box_trans, X, self.xmin, self.xmax)
+
 	def transform_p (self, P):
-		return self.transform(P, self.pmin, self.pmax)
+		return self.transform(self.box_trans, P, self.pmin, self.pmax)
+	
 	def backtransform_p (self, P):
-		return self.backtransform(P, self.pmin, self.pmax)
+		return self.backtransform(self.box_trans, P, self.pmin, self.pmax)
+	
 	def transform_z (self, Z):
-		return self.transform(Z, self.zmin, self.zmax)
+		return self.transform(self.box_trans, Z, self.zmin, self.zmax)
+	
 	def backtransform_z (self, Z):
-		return self.backtransform(Z, self.zmin, self.zmax)
+		return self.backtransform(self.box_trans, Z, self.zmin, self.zmax)
+	
 	def transform_y (self, Y):
-		return self.transform(Y, self.ymin, self.ymax)
+		return self.transform(self.mean_trans, Y, self.ymean, self.ystd)
+	
 	def backtransform_y (self, Y):
-		return self.backtransform(Y, self.ymin, self.ymax)
-
-	# Transform to [-1, 1]-space
-	def transform_var (self, C, xmin, xmax):
-		if self._none_check([C, xmin, xmax]):
-			return np.NaN
-		return 4 * C / (xmax - xmin)**2
-
-	# Transform to original space
-	def backtransform_var (self, C, xmin, xmax):
-		if self._none_check([C, xmin, xmax]):
-			return np.NaN
-		return 0.25 * C * (xmax - xmin)**2
-
-	# Transform to [-1, 1]-space
-	def transform_cov (self, C, xmin, xmax):
-		if self._none_check([C, xmin, xmax]):
-			return np.NaN
-		m = xmax - xmin
-		return 4 * C / (m[:,None] * m[None,:])
-
-	# Transform to original space
-	def backtransform_cov (self, C, xmin, xmax):
-		if self._none_check([C, xmin, xmax]):
-			return np.NaN
-		m = xmax - xmin
-		return 0.25 * C * (m[:,None] * m[None,:])
+		return self.backtransform(self.mean_trans, Y, self.ymean, self.ystd)
 
 	def transform_p_var (self, C):
-		return self.transform_var(C, self.pmin, self.pmax)
+		return self.transform(self.box_var_trans, C, self.pmin, self.pmax)
+	
 	def backtransform_p_var (self, C):
-		return self.backtransform_var(C, self.pmin, self.pmax)
+		return self.backtransform(self.box_var_trans, C, self.pmin, self.pmax)
+	
 	def transform_p_cov (self, C):
-		return self.transform_cov(C, self.pmin, self.pmax)
+		return self.transform(self.box_cov_trans, C, self.pmin, self.pmax)
+	
 	def backtransform_p_cov (self, C):
-		return self.backtransform_cov(C, self.pmin, self.pmax)
+		return self.backtransform(self.box_cov_trans, C, self.pmin, self.pmax)
+	
 	def transform_y_var (self, C):
-		return self.transform_var(C, self.ymin, self.ymax)
+		return self.transform(self.mean_var_trans, C, self.ymean, self.ystd)
+	
 	def backtransform_y_var (self, C):
-		return self.backtransform_var(C, self.ymin, self.ymax)
+		return self.backtransform(self.mean_var_trans, C, self.ymean, self.ystd)
+	
 	def transform_y_cov (self, C):
-		return self.transform_cov(C, self.ymin, self.ymax)
+		return self.transform(self.mean_cov_trans, C, self.ymean, self.ystd)
+	
 	def backtransform_y_cov (self, C):
-		return self.backtransform_cov(C, self.ymin, self.ymax)
+		return self.backtransform(self.mean_cov_trans, C, self.ymean, self.ystd)
 
 	def backtransform_prediction (self, M, S):
 		M = self.backtransform_y(M)
@@ -209,7 +240,6 @@ class GPModel (Model):
 		else:
 			S = self.backtransform_y_cov(S)
 		return M, S
-
 
 
 
@@ -247,6 +277,8 @@ class GPModel (Model):
 	@hyp.setter
 	def hyp (self, value):
 		if value is not None:
+			# Should be list with hyperparameters for each output
+			# num_outputs x num_bin_var x num_hyperparameters
 			assert len(value) == self.num_outputs
 			self._hyp = value
 	@hyp.deleter
