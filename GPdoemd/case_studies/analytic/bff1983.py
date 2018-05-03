@@ -19,7 +19,11 @@ class BFF1983Model:
 		return np.array([[15.,25.], [200.,250.], [5.,10.]])
 	@property
 	def p_bounds (self):
-		return np.array([[0.,10000.], [0.,10.], [0.,1.], [0.,1000.], [0.,1.]])
+		return np.array([[   1., 10000.], 
+			             [ 1e-2,    10.], 
+			             [ 1e-4,     1.], 
+			             [   1.,  1000.], 
+			             [1e-10,     1.]])
 
 """
 Models
@@ -43,7 +47,7 @@ class M1 (BFF1983Model):
 		dK3  = dK1 * x2
 		dK4  = dK1 * x3
 		dKeq = x3 / (Keq * dnm)**2
-		return np.array([y]), np.array([[dK1,dK2,dK3,dK4,dKeq]])
+		return np.array([y]), np.array([[dK1, dK2, dK3, dK4, dKeq]])
 
 class M2 (BFF1983Model):
 	@property
@@ -64,7 +68,7 @@ class M2 (BFF1983Model):
 		dK3  = dK1 * x2
 		dK4  = dK1 * x1 * x2
 		dKeq = x3 / (Keq**2 * dnm)
-		return np.array([y]), np.array([[dK1,dK2,dK3,dK4,dKeq]])
+		return np.array([y]), np.array([[dK1, dK2, dK3, dK4, dKeq]])
 
 class M3 (BFF1983Model):
 	@property
@@ -85,7 +89,7 @@ class M3 (BFF1983Model):
 		dK3  = dK1 * x2
 		dK4  = dK1 * x3 / x2
 		dKeq = x3 / (Keq**2 * dnm)
-		return np.array([y]), np.array([[dK1,dK2,dK3,dK4,dKeq]])
+		return np.array([y]), np.array([[dK1, dK2, dK3, dK4, dKeq]])
 
 class M4 (BFF1983Model):
 	@property
@@ -107,7 +111,7 @@ class M4 (BFF1983Model):
 		dK3  = dK1 * x32
 		dK4  = dK1 * x3
 		dKeq = x32 / (Keq * dnm)**2
-		return np.array([y]), np.array([[dK1,dK2,dK3,dK4,dKeq]])
+		return np.array([y]), np.array([[dK1, dK2, dK3, dK4, dKeq]])
 
 class M5 (BFF1983Model):
 	@property
@@ -128,7 +132,7 @@ class M5 (BFF1983Model):
 		dK3  = dK1 * x1 * x2
 		dK4  = dK1 * x3
 		dKeq = x3 / (Keq * dnm)**2
-		return np.array([y]), np.array([[dK1,dK2,dK3,dK4,dKeq]])
+		return np.array([y]), np.array([[dK1, dK2, dK3, dK4, dKeq]])
 
 """
 Data generator
@@ -139,7 +143,7 @@ class DataGen (M5):
 		return 4
 	@property
 	def measvar (self):
-		return 4e-7
+		return np.array([4e-7])
 	@property
 	def p (self):
 		return [1704., 4.25, 0.241, 444.6, 1.7e-5]
