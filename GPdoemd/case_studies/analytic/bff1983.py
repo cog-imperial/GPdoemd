@@ -34,8 +34,8 @@ class M1 (BFF1983Model):
 		return 'M1'
 
 	def __call__ (self,x,p,grad=False):
-		x1,x2,x3 = x
-		K1,K2,K3,K4,Keq = p 
+		x1,x2,x3 = x.astype(float)
+		K1,K2,K3,K4,Keq = p
 
 		nom = x1 * x2**2 - x3/Keq
 		dnm = K1 + K2*x1 + K3*x2 + K4*x3
@@ -55,8 +55,8 @@ class M2 (BFF1983Model):
 		return 'M2'
 
 	def __call__ (self,x,p,grad=False):
-		x1,x2,x3 = x
-		K1,K2,K3,K4,Keq = p 
+		x1,x2,x3 = x.astype(float)
+		K1,K2,K3,K4,Keq = p
 
 		nom = x1 * x2**2 - x3/Keq
 		dnm = K1 + K2*x1 + K3*x2 + K4*x1*x2
@@ -76,8 +76,8 @@ class M3 (BFF1983Model):
 		return 'M3'
 
 	def __call__ (self,x,p,grad=False):
-		x1,x2,x3 = x
-		K1,K2,K3,K4,Keq = p 
+		x1,x2,x3 = x.astype(float)
+		K1,K2,K3,K4,Keq = p
 
 		nom = x1 * x2**2 - x3/Keq
 		dnm = x2**2 * (K1 + K2*x3 + K3*x2) + K4*x2*x3
@@ -97,9 +97,9 @@ class M4 (BFF1983Model):
 		return 'M4'
 
 	def __call__ (self,x,p,grad=False):
-		x1,x2,x3 = x
+		x1,x2,x3 = x.astype(float)
 		x32 = x3/x2
-		K1,K2,K3,K4,Keq = p 
+		K1,K2,K3,K4,Keq = p
 
 		nom = x1 * x2**2 - x3/Keq
 		dnm = K1 + K2*x1 + K3*x32 + K4*x3
@@ -119,8 +119,8 @@ class M5 (BFF1983Model):
 		return 'M5'
 
 	def __call__ (self,x,p,grad=False):
-		x1,x2,x3 = x
-		K1,K2,K3,K4,Keq = p 
+		x1,x2,x3 = x.astype(float)
+		K1,K2,K3,K4,Keq = p
 
 		nom = x1 * x2**2 - x3/Keq
 		dnm = K1 + K2*x2 + K3*x1*x2 + K4*x3
@@ -149,7 +149,7 @@ class DataGen (M5):
 		return [1704., 4.25, 0.241, 444.6, 1.7e-5]
 
 	def __call__ (self,x):
-		state = super().__call__(x,self.p)
+		state = super().__call__(x, self.p)
 		noise = np.sqrt(self.measvar) * np.random.randn(self.n_outputs)
 		return state + noise
 
