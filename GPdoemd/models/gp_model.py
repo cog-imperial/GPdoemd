@@ -365,10 +365,10 @@ class GPModel (Model):
 				gp.update_model(True)
 
 
-	def gp_optimize (self, *args):
-		self.gp_optimize(*args)
+	def gp_optimize (self, index=None, max_lengthscale=10):
+		self.gp_optimise(index=index, max_lengthscale=max_lengthscale)
 
-	def gp_optimise (self, index=None):
+	def gp_optimise (self, index=None, max_lengthscale=10):
 		if index is None:
 			index = range( self.num_outputs )
 		elif isinstance(index, int):
@@ -384,11 +384,11 @@ class GPModel (Model):
 				# Constrain kern_x lengthscales
 				for j in range(self.dim_x-self.dim_b):
 					gp.kern.kernx.lengthscale[[j]].constrain_bounded(
-						lower=0., upper=10., warning=False )
+						lower=0., upper=max_lengthscale, warning=False )
 				# Constrain kern_p lengthscales
 				for j in range(self.dim_p):
 					gp.kern.kernp.lengthscale[[j]].constrain_bounded(
-						lower=0., upper=10., warning=False )
+						lower=0., upper=max_lengthscale, warning=False )
 				# Optimise
 				gp.optimize()
 
@@ -403,8 +403,10 @@ class GPModel (Model):
 		self.hyp = hyp
 
 
-	def predict (self, xnew):
-		znew    = np.array([ x.tolist() + self.pmean.tolist() for x in xnew ])
+	def predict (self, xnew, p=None):
+		if p is None:
+			p = self.pmean
+		znew    = np.array([ x.tolist() + p.tolist() for x in xnew ])
 		znew    = self.transform_z(znew)
 		R, I, J = binary_dimensions(znew, self.binary_variables)
 		znew    = znew[:,I]
