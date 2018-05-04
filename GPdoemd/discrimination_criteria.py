@@ -49,7 +49,10 @@ def chi2 (Y, M, S, D):
 	"""
 	N, E = Y.shape
 	maha = _maha_sum(Y, M, S)
-	return 1. - scipy_chi2.cdf(maha, N*E - D)
+	dof  = N*E - D
+	if np.any(dof <= 0):
+		raise RuntimeWarning('Degrees of freedom not greater than zero.')
+	return 1. - scipy_chi2.cdf(maha, dof)
 
 # Summed squared Mahalanobis distance
 def _maha_sum (Y, F, S):
