@@ -25,8 +25,8 @@ ymax = np.array([80,40])
 d = {
 	'name':        'testmodel',
 	'call':        f,
-	'x_bounds':    x_bounds,
-	'p_bounds':    p_bounds,
+	'dim_x':       len(x_bounds),
+	'dim_p':       len(p_bounds),
 	'num_outputs': 2
 }
 

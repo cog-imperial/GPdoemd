@@ -29,8 +29,8 @@ def f (x, p):
 d = {
 	'name':        'testmodel',
 	'call':        f,
-	'x_bounds':    x_bounds,
-	'p_bounds':    p_bounds,
+	'dim_x':       len(x_bounds),
+	'dim_p':       len(p_bounds),
 	'num_outputs': 2
 }
 M = GPModel(d)
@@ -85,13 +85,6 @@ class TestGPModel:
 	def test_trans_p_max (self):
 		assert np.all( np.max(M.P, axis=0) == np.ones(2)  )
 
-	"""
-	def test_trans_y_min (self):
-		assert np.all( np.min(M.Y, axis=0) == np.zeros(2) )
-
-	def test_trans_y_max (self):
-		assert np.all( np.max(M.Y, axis=0) == np.ones(2)  )
-	"""
 	def test_trans_y_mean (self):
 		assert np.all( np.abs(np.mean(M.Y, axis=0)) <= 1e-10 )
 
@@ -125,15 +118,6 @@ class TestGPModel:
 		t = M.backtransform_p( np.ones(2)  )
 		assert np.all(t == p_bounds[:, 1])
 	
-	"""
-	def test_backtrans_y_min (self):
-		yt   = M.backtransform_y( np.zeros(2) )
-		assert np.all(yt == ymin)
-
-	def test_backtrans_y_max (self):
-		yt   = M.backtransform_y( np.ones(2)  )
-		assert np.all(yt == ymax)
-	"""
 	def test_backtrans_y_mean (self):
 		yt    = M.backtransform_y( np.zeros(2) )
 		assert np.all(yt == ymean)

@@ -29,8 +29,8 @@ def f (x, p):
 d = {
 	'name':        'testmodel',
 	'call':        f,
-	'x_bounds':    xb,
-	'p_bounds':    pb,
+	'dim_x':       len(xb),
+	'dim_p':       len(pb),
 	'num_outputs': E
 }
 M = GPModel(d)
