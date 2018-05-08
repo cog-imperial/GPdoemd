@@ -137,15 +137,15 @@ class TestGPModel:
 		C  = np.array([5., 2.])
 		Ct = self._trans_var(C, p_bounds[:,0], p_bounds[:,1])
 		Cp = M.transform_p_var( C )
-		assert np.all( Ct == Cp )
-		assert np.all( C == M.backtransform_p_var(Cp) )
+		assert np.all( np.abs(Ct - Cp) <= 1e-10 )
+		assert np.all( np.abs(C - M.backtransform_y_var(Cp)) <= 1e-10 )
 
 	def test_trans_y_var (self):
 		C  = np.array([5., 2.])
 		Ct = self._trans_var(C, 0, ystd)
 		Cp = M.transform_y_var( C )
-		assert np.all( Ct == Cp )
-		assert np.all( C  == M.backtransform_y_var(Cp) )
+		assert np.all( np.abs(Ct - Cp) <= 1e-10 )
+		assert np.all( np.abs(C - M.backtransform_y_var(Cp)) <= 1e-10 )
 
 
 	"""
@@ -159,15 +159,15 @@ class TestGPModel:
 		C  = np.array([[5., 3.], [3., 2.]])
 		Ct = self._trans_cov(C, p_bounds[:,0], p_bounds[:,1])
 		Cp = M.transform_p_cov( C )
-		assert np.all( Ct == Cp )
-		assert np.all( C == M.backtransform_p_cov(Cp) )
+		assert np.all( np.abs(Ct - Cp) <= 1e-10 )
+		assert np.all( np.abs(C - M.backtransform_y_cov(Cp)) <= 1e-10 )
 
 	def test_trans_y_cov (self):
 		C  = np.array([[5., 3.], [3., 2.]])
 		Ct = self._trans_cov(C, 0, ystd)
 		Cp = M.transform_y_cov( C )
-		assert np.all( Ct == Cp )
-		assert np.all( C  == M.backtransform_y_cov(Cp) )
+		assert np.all( np.abs(Ct - Cp) <= 1e-10 )
+		assert np.all( np.abs(C - M.backtransform_y_cov(Cp)) <= 1e-10 )
 
 
 	"""
