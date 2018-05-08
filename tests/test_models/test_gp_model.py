@@ -138,7 +138,7 @@ class TestGPModel:
 		Ct = self._trans_var(C, p_bounds[:,0], p_bounds[:,1])
 		Cp = M.transform_p_var( C )
 		assert np.all( np.abs(Ct - Cp) <= 1e-10 )
-		assert np.all( np.abs(C - M.backtransform_y_var(Cp)) <= 1e-10 )
+		assert np.all( np.abs(C - M.backtransform_p_var(Cp)) <= 1e-10 )
 
 	def test_trans_y_var (self):
 		C  = np.array([5., 2.])
@@ -160,7 +160,7 @@ class TestGPModel:
 		Ct = self._trans_cov(C, p_bounds[:,0], p_bounds[:,1])
 		Cp = M.transform_p_cov( C )
 		assert np.all( np.abs(Ct - Cp) <= 1e-10 )
-		assert np.all( np.abs(C - M.backtransform_y_cov(Cp)) <= 1e-10 )
+		assert np.all( np.abs(C - M.backtransform_p_cov(Cp)) <= 1e-10 )
 
 	def test_trans_y_cov (self):
 		C  = np.array([[5., 3.], [3., 2.]])
