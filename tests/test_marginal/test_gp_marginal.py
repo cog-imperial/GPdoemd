@@ -1,8 +1,8 @@
 
 import pytest
 import numpy as np 
-
-from pdb import set_trace as st
+import random 
+random.seed(12345)
 
 from GPdoemd.models import GPModel
 from GPdoemd.kernels import RBF
@@ -29,8 +29,8 @@ def f (x, p):
 d = {
 	'name':        'testmodel',
 	'call':        f,
-	'x_bounds':    xb,
-	'p_bounds':    pb,
+	'dim_x':       len(xb),
+	'dim_p':       len(pb),
 	'num_outputs': E
 }
 M = GPModel(d)

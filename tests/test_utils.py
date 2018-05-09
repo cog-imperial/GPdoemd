@@ -15,13 +15,13 @@ class TestUtils:
 		N  = len(Z)
 		Z  = np.c_[ np.arange(N), np.ones(N), Z ]
 
-		L  = np.arange( 2 )
+		R  = np.arange( 2 )
 		I  = np.array([ 0, 1 ])
 		J  = np.array([ 1, 0, 1 ])
 
-		l, i, j = binary_dimensions(Z, bs)
+		r, i, j = binary_dimensions(Z, bs)
 
-		assert np.all( l == L )
+		assert np.all( r == R )
 		assert np.all( i == I )
 		assert np.all( j == J )
 		
@@ -42,12 +42,12 @@ class TestUtils:
 		N  = len(Z)
 		Z  = np.c_[ np.arange(N), Z, np.ones(N) ]
 
-		L  = np.arange( 4 )
+		R  = np.arange( 4 )
 		I  = np.array([ 0, 3 ])
 		J  = np.array([ 0, 1, 3, 2, 2, 1, 0, 3, 3, 2, 0 ])
 
-		l, i, j = binary_dimensions(Z, bs)
+		r, i, j = binary_dimensions(Z, bs)
 
-		assert np.all( l == L )
+		assert np.all( r == R )
 		assert np.all( i == I )
 		assert np.all( j == J )

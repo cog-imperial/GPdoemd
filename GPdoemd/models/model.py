@@ -1,3 +1,26 @@
+"""
+MIT License
+
+Copyright (c) 2018 Simon Olofsson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 from os.path import isfile
 
@@ -9,19 +32,16 @@ from ..marginal import Analytic, Numerical
 from pdb import set_trace as st
 
 class Model:
-	def __init__ (self, model_dict=None):
+	def __init__ (self, model_dict):
 		# Read dictionnary
-		self.name        = model_dict['name']
+		self.name        = model_dict.get('name','model')
 		self.call        = model_dict['call']
-		self.x_bounds    = model_dict['x_bounds']
-		self.p_bounds    = model_dict['p_bounds']
-		self.num_outputs = model_dict['num_outputs']
+		self.dim_x       = model_dict['dim_x']
+		self.dim_p       = model_dict['dim_p']
+		self.num_outputs = model_dict.get('num_outputs',1)
 		# Optional parameters
 		self.meas_noise_var   = model_dict.get('meas_noise_var', 1.)
 		self.binary_variables = []
-
-	def __call__ (self, x, p):
-		return self.call(x, p)
 
 	"""
 	Properties
@@ -43,24 +63,6 @@ class Model:
 	def call (self, value):
 		assert callable(value)
 		self._call = value
-
-	## Design variable bounds
-	@property
-	def x_bounds (self):
-		return self._x_bounds
-	@x_bounds.setter 
-	def x_bounds (self, value):
-		assert value.ndim == 2 and value.shape[1] == 2
-		self._x_bounds = value
-
-	## Model parameter bounds
-	@property
-	def p_bounds (self):
-		return self._p_bounds
-	@p_bounds.setter 
-	def p_bounds (self, value):
-		assert value.ndim == 2 and value.shape[1] == 2
-		self._p_bounds = value
 
 	## Number of outputs/target dimensions
 	@property
@@ -92,24 +94,20 @@ class Model:
 	## Number of design variables
 	@property
 	def dim_x (self):
-		return len( self.x_bounds )
+		return self._dim_x
+	@dim_x.setter
+	def dim_x (self, value):
+		assert isinstance(value, int) and value > 0
+		self._dim_x = value
 
 	## Number of model parameters
 	@property
 	def dim_p (self):
-		return len( self.p_bounds )
-
-	## Model probability measure
-	"""
-	@property
-	def probability (self):
-		return None if not hasattr(self,'_probability') else self._probability
-	@probability.setter
-	def probability (self, value):
-		assert isinstance(value, float) or value is None
-		self._probability = value
-	"""
-
+		return self._dim_p
+	@dim_p.setter
+	def dim_p (self, value):
+		assert isinstance(value, int) and value > 0
+		self._dim_p = value
 
 
 
@@ -133,12 +131,14 @@ class Model:
 		self._pmean     = None
 		self.pmean      = None
 
-	def param_estim (self, Xdata, Ydata, method):
-		self.pmean = method(self, Xdata, Ydata)
+	def param_estim (self, Xdata, Ydata, method, p_bounds=None):
+		self.pmean = method(self, Xdata, Ydata, p_bounds)
 
 	# Model prediction
-	def predict (self, xnew):
-		M = np.array([self.call(x,self.pmean) for x in xnew])
+	def predict (self, xnew, p=None):
+		if p is None:
+			p = self.pmean
+		M = np.array([self.call(x, p) for x in xnew])
 		S = np.zeros(M.shape)
 		return M, S
 
@@ -202,7 +202,6 @@ class Model:
 	def _load_save_dict (self, save_dict):
 		self.pmean        = save_dict['pmean']
 		self._old_pmean   = save_dict['old_pmean']
-		#self._probability = save_dict['probability']
 
 	def save (self, filename):
 		assert isinstance(filename, str)

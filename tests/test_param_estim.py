@@ -17,13 +17,13 @@ X = np.random.rand(N,E)
 P = np.random.rand(E)
 Y = f(X,P)
 
+p_bounds = np.array([[0,1]] * E)
+
 class M:
 	def __init__ (self):
 		self.pmean = None
 		self.meas_noise_var = None
-		self.p_bounds = np.array([[0,1]] * E)
-	def __call__ (self, x, p):
-		return f(x, p)
+		self.call = f
 
 
 """
@@ -54,23 +54,23 @@ class TestParamEstim:
 	def test_diff_evol_noisevar(self):
 		model = M()
 		model.meas_noise_var = 0.5 * np.ones( E )
-		p = diff_evol(model, X, Y)
+		p = diff_evol(model, X, Y, p_bounds)
 		assert self._p_close_enough(p)
 
 	def test_diff_evol_noisecov(self):
 		model = M()
 		model.meas_noise_var = 0.5 * np.eye( E )
-		p = diff_evol(model, X, Y)
+		p = diff_evol(model, X, Y, p_bounds)
 		assert self._p_close_enough(p)
 
 	def test_least_squares_noisevar(self):
 		model = M()
 		model.meas_noise_var = 0.5 * np.ones( E )
-		p = least_squares(model, X, Y)
+		p = least_squares(model, X, Y, p_bounds)
 		assert self._p_close_enough(p)
 
 	def test_least_squares_noisecov(self):
 		model = M()
 		model.meas_noise_var = 0.5 * np.eye( E )
-		p = least_squares(model, X, Y)
+		p = least_squares(model, X, Y, p_bounds)
 		assert self._p_close_enough(p)

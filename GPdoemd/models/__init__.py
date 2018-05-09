@@ -1,3 +1,5 @@
 
 from .model import Model
-from .gpmodel import GPModel
+
+from .gp_model import GPModel
+from .sparse_gp_model import SparseGPModel

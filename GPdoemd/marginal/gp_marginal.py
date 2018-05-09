@@ -1,5 +1,29 @@
+"""
+MIT License
+
+Copyright (c) 2018 Simon Olofsson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 import numpy as np
+from pdb import set_trace as st 
 
 from ..utils import binary_dimensions
 
@@ -26,55 +50,48 @@ class GPMarginal:
 		return np.array([ x.tolist() + self.param_mean.tolist() for x in X ])
 
 	def d_mu_d_p (self, gp, X):
-		Z = self.get_Z(X)
-
-		# d k / d p
-		dk   = gp.kern.kernx.K(Z, gp.X)[:,:,None]
-		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gp.X)
-		# beta := inv(K + sigma*I) * y
-		beta = gp.posterior.woodbury_vector.reshape([1, len(gp.X), 1])
-		# d mu / d p
-		dmu  = np.sum( beta * dk, axis=1 )
+		Z   = self.get_Z(X)
+		dim = X.shape[1]
+		dmu = gp.predictive_gradients(Z)[0][:, dim:, 0]
 		return dmu
 
 	def d2_mu_d_p2 (self, gp, X):
-		Z = self.get_Z(X)
+		Z   = self.get_Z(X)
+		gpX = gp._predictive_variable
+		dim = X.shape[1]
 
-		# d^2 k / d p^2
-		ddk  = gp.kern.kernx.K(Z, gp.X)[:,:,None,None]
-		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gp.X)
-		# beta := inv(K + sigma*I) * y
-		beta = gp.posterior.woodbury_vector.reshape([1, len(gp.X), 1, 1])
-		# d mu / d p
-		ddmu = np.sum( beta * ddk, axis=1 )
-		return ddmu
+		tmp  = -gp.kern.kernx.K(Z, gpX) * gp.posterior.woodbury_vector.T
+		ddmu = np.sum( gp.kern.kernp.gradients_XX(tmp, Z, gpX), axis=1 )
+		return ddmu[:,dim:,dim:]
 
 	def d_s2_d_p (self, gp, X):
-		return NotImplementedError
+		Z   = self.get_Z(X)
+		dim = X.shape[1]
+		ds2 = gp.predictive_gradients(Z)[1][:, dim:]
+		return ds2
 
 	def d2_s2_d_p2 (self, gp, X):
-		Z = self.get_Z(X)
-		k = gp.kern.K(Z, gp.X)
+		Z   = self.get_Z(X)
+		gpX = gp._predictive_variable
+		dim = X.shape[1]
 
 		# d k / d p
-		dk   = gp.kern.kernx.K(Z, gp.X)[:,:,None]
-		dk   = dk * gp.kern.kernp.d_k_d_x(Z, gp.X)
+		kx = gp.kern.kernx.K(Z, gpX)
+		dk = np.zeros((X.shape[0], gpX.shape[0], Z.shape[1] - dim))
+		for i in range( gpX.shape[0] ):
+			dk[:,i] = gp.kern.kernp.gradients_X(kx[:,[i]], Z, gpX[[i]])[:,dim:]
+		dkiKdk = np.einsum('ijk,jn,inm->ikm', dk, gp.posterior.woodbury_inv, dk)
+
 		# d^2 k / d p^2
-		ddk  = gp.kern.kernx.K(Z, gp.X)[:,:,None,None]
-		ddk  = ddk * gp.kern.kernp.d2_k_d_x2(Z, gp.X)
+		kiK = np.matmul( gp.kern.K(Z, gpX), gp.posterior.woodbury_inv )
+		ddk = np.sum( gp.kern.kernp.gradients_XX(-kx*kiK, Z, gpX), axis=1 )
+		ddk = ddk[:,dim:,dim:]
 
-		iK   = gp.posterior.woodbury_inv
-		kiK  = np.matmul(k,iK)
-		kiK  = kiK[:,:,None,None]
-		ddk  = np.sum(kiK * ddk, axis=1)
-
-		dkiK   = np.matmul( np.transpose(dk,(0,2,1)), iK )
-		dkiK   = np.transpose(dkiK,(0,2,1))
-		dkiKdk = np.sum(dkiK[:,:,:,None] * dk[:,:,None,:], axis=1)
 		# d^2 s2 / d p^2
 		dds2ddp = -2. * ( ddk + dkiKdk )
 		return dds2ddp
 	
+
 	def compute_param_covar (self, Xdata, meas_noise_var):
 		# Dimensions
 		E       = len(self.gps)
