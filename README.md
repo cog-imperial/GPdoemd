@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/cog-imperial/GPdoemd.svg?branch=dev)](https://travis-ci.org/cog-imperial/GPdoemd) [![codecov](https://codecov.io/gh/cog-imperial/GPdoemd/branch/dev/graph/badge.svg)](https://codecov.io/gh/cog-imperial/GPdoemd) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Design of experiments for model discrimination using Gaussian process surrogate models.** 
+
 [arXiv paper](https://arxiv.org/abs/1802.04170)
 
 ## Installation
@@ -9,6 +10,7 @@ The GPdoemd package has been tested and validated on OSX and Ubuntu. No guarante
 
 ##### Requirements
 Python 3.4+
+
 Required python packages are:
 * numpy >= 1.7
 * scipy >= 0.17
