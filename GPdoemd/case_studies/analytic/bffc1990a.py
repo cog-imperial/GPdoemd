@@ -27,7 +27,7 @@ import numpy as np
 """
 Model super class
 """
-class BFFC1990Model:
+class BFFC1990AModel:
 	"""
 	G. Buzzi-Ferraris, P. Forzatti and P. Canu
 	"An improved version of a sequential design criterion for discriminating 
@@ -241,3 +241,10 @@ class DataGen (M1):
 		state = super().__call__(x, self.p)
 		noise = np.sqrt(self.measvar) * np.random.randn(self.n_outputs)
 		return state + noise
+
+
+"""
+Get model functions
+"""
+def get (*args):
+	return DataGen(), [M1(),M2(),M3(),M4()]
