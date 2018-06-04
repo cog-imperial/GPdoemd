@@ -40,6 +40,7 @@ class Model:
 		self.dim_p       = model_dict['dim_p']
 		self.num_outputs = model_dict.get('num_outputs',1)
 		# Optional parameters
+		self.p_bounds         = model_dict.get('p_bounds', [])
 		self.meas_noise_var   = model_dict.get('meas_noise_var', 1.)
 		self.binary_variables = []
 
