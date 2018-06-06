@@ -64,7 +64,6 @@ class TestGPModel:
 		assert S.shape == (len(Xs),2)
 
 		assert Mt.gprm is None
-		#Mt.marginal_init_and_compute_covar(Analytic, Xs)
 		Mt.marginal_init(Analytic)
 		Mt.gprm.Sigma = np.eye(2)
 		M,S = Mt.marginal_predict(Xs)
@@ -75,8 +74,11 @@ class TestGPModel:
 	Test dictionary
 	"""
 	def test_dict (self):
+		p = np.array([3., 4.])
+		M.pmean = p
 		d = M._get_save_dict()
 		assert isinstance(d,dict)
+		assert np.all(d['pmean'] == p)
 
 
 
