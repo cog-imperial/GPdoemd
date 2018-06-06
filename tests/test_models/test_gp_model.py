@@ -283,3 +283,13 @@ class TestGPModel:
 		assert Mt.gprm is None
 
 
+	"""
+	Test dictionary
+	"""
+	def test_dict (self):
+		d = M._get_save_dict()
+		assert isinstance(d,dict)
+		assert np.all( np.abs(d['Y'] - Y) <= 1e-10 )
+		assert np.all( np.abs(d['Z'] - Z) <= 1e-10 )
+
+
