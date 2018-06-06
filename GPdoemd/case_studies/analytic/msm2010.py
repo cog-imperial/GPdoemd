@@ -1,11 +1,26 @@
 """
-Case study from
-C. Michalik, M. Stuckert, and W. Marquardt 
-"Optimal experimental design for discriminating numerous model candidates: 
-The AWDC criterion" 
-Ind Eng Chem Res, 49:913–919, 2010.
-"""
+MIT License
 
+Copyright (c) 2018 Simon Olofsson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 import numpy as np 
 
@@ -13,6 +28,12 @@ import numpy as np
 Model super class
 """
 class MSM2010Model:
+	"""
+	C. Michalik, M. Stuckert, and W. Marquardt 
+	"Optimal experimental design for discriminating numerous model candidates: 
+	The AWDC criterion" 
+	Ind Eng Chem Res, 49:913–919, 2010.
+	"""
 	@property
 	def n_outputs (self):
 		return 1
@@ -23,7 +44,7 @@ class MSM2010Model:
 	def p_bounds (self):
 		return np.array([[0.,1000.]])
 
-	def __call__ (self,x,p,grad=False):
+	def __call__ (self, x, p, grad=False):
 		C  = self.f(x)
 		dC = np.array([C])
 		return C*p if not grad else [C*p, dC]

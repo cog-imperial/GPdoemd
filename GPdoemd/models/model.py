@@ -29,8 +29,6 @@ import pickle
 
 from ..marginal import Analytic, Numerical
 
-from pdb import set_trace as st
-
 class Model:
 	def __init__ (self, model_dict):
 		# Read dictionnary
@@ -40,6 +38,7 @@ class Model:
 		self.dim_p       = model_dict['dim_p']
 		self.num_outputs = model_dict.get('num_outputs',1)
 		# Optional parameters
+		self.p_bounds         = model_dict.get('p_bounds', [])
 		self.meas_noise_var   = model_dict.get('meas_noise_var', 1.)
 		self.binary_variables = []
 
@@ -193,15 +192,14 @@ class Model:
 		return value if operation is None else operation(value)
 
 	def _get_save_dict (self):
-		#'probability': self.probability
 		return {
 				'pmean':       self.pmean,
 		        'old_pmean':   self._save_var('_old_pmean')
 		        }
 
 	def _load_save_dict (self, save_dict):
-		self.pmean        = save_dict['pmean']
-		self._old_pmean   = save_dict['old_pmean']
+		self.pmean      = save_dict['pmean']
+		self._old_pmean = save_dict['old_pmean']
 
 	def save (self, filename):
 		assert isinstance(filename, str)

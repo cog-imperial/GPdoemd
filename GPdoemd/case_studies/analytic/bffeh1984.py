@@ -42,7 +42,7 @@ class BFFEH1984Model:
 		return np.array([[5., 55.]]*2)
 	@property
 	def p_bounds (self):
-		return np.array([[0., 1.]]*4)
+		return np.array([[1e-4, 1.]]*4)
 
 """
 Models
