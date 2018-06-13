@@ -59,9 +59,71 @@ TESTS
 class TestGPModel:
 
 	"""
+	Binary variables
+	"""
+	def test_binary_variables_integer (self):
+		d2 = d.copy()
+		d2['binary_variables'] = 1
+		Mt = GPModel(d2)
+		assert isinstance(Mt.binary_variables, list)
+		assert len( Mt.binary_variables ) == 1
+		assert Mt.binary_variables[0] == 1
+
+	def test_binary_variables_illegal_integer (self):
+		d2 = d.copy()
+		# Test cases
+		T  = [ -1, 5 ]
+		# Loop test cases
+		for t in T:
+			d2['binary_variables'] = t
+			with pytest.raises(AssertionError) as errinfo:
+				Mt = GPModel(d2)
+			assert 'Value outside range' in str(errinfo.value)
+
+	def test_binary_variables_list (self):
+		d2 = d.copy()
+		d2['binary_variables'] = [1]
+		Mt = GPModel(d2)
+		assert isinstance(Mt.binary_variables, list)
+		assert len( Mt.binary_variables ) == 1
+		assert Mt.binary_variables[0] == 1
+
+	def test_binary_variables_illegal_list (self):
+		d2 = d.copy()
+		# Test cases
+		T  = [ [-1], [5], [0,-1], [-1,0], [0,10] ]
+		# Loop test cases
+		for t in T:
+			d2['binary_variables'] = t
+			with pytest.raises(AssertionError) as errinfo:
+				Mt = GPModel(d2)
+			assert 'Value outside range' in str(errinfo.value)
+		# Test cases
+		T  = [ [[-1]], [np.array([0])] ]
+		# Loop test cases
+		for t in T:
+			d2['binary_variables'] = t
+			with pytest.raises(AssertionError) as errinfo:
+				Mt = GPModel(d2)
+			assert 'Value not integer' in str(errinfo.value)
+
+	def test_binary_variables_else (self):
+		d2 = d.copy()
+		# Test cases
+		T  = [ 0.1, None, np.array([1]) ]
+		# Loop test cases
+		for t in T:
+			d2['binary_variables'] = t
+			with pytest.raises(ValueError) as errinfo:
+				Mt = GPModel(d2)
+			assert 'Binary variable must be list or integer' in str(errinfo.value)
+	
+
+
+	"""
 	Dimensions
 	"""
-	def test_dim_x (self):
+	def test_dim_b (self):
 		assert M.dim_b == 0
 
 	"""
@@ -291,5 +353,4 @@ class TestGPModel:
 		assert isinstance(d,dict)
 		assert np.all( np.abs(d['Y'] - Y) <= 1e-10 )
 		assert np.all( np.abs(d['Z'] - Z) <= 1e-10 )
-
 
