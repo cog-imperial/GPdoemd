@@ -58,8 +58,12 @@ class GPModel (Model):
 	@binary_variables.setter
 	def binary_variables (self, value):
 		if isinstance(value, list):
+			for v in value:
+				assert isinstance(v, int), 'Value not integer'
+				assert 0 <= v < self.dim_x, 'Value outside range'
 			self._binary_variables = value
 		elif isinstance (value, int):
+			assert 0 <= value < self.dim_x, 'Value outside range'
 			self._binary_variables = [value]
 		else:
 			raise ValueError('Binary variable must be list or integer')
