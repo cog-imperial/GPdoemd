@@ -13,4 +13,5 @@ venv
 docs/_buildi
 .DS_Store
 .pytest_cache
+.ipynb_checkpoints
 *~
