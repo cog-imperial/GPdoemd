@@ -52,7 +52,17 @@ class GPModel (Model):
 		else:
 			return self.transform_y_cov(self.meas_noise_var)
 
-
+	@property
+	def binary_variables (self):
+		return self._binary_variables
+	@binary_variables.setter
+	def binary_variables (self, value):
+		if isinstance(value, list):
+			self._binary_variables = value
+		elif isinstance (value, int):
+			self._binary_variables = [value]
+		else:
+			raise ValueError('Binary variable must be list or integer')
 
 	"""
 	Surrogate model training data
