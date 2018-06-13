@@ -29,7 +29,7 @@ source myenv/bin/activate
 ```
 It is recommended that you update the pip installation in the virtual environment
 ```
-pip install ----upgrade pip
+pip install --upgrade pip
 ```
 
 ##### Installing GPdoemd
