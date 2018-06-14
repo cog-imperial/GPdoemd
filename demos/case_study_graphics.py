@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class MixingGraphics:
+class Graphics:
 	def __init__ (self, X, Y, mvar):
 		self.X      = X 
 		self.Y      = Y
