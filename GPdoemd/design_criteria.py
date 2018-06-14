@@ -51,7 +51,7 @@ def HR (mu, s2, noise_var=None, pps=None):
 	Hunter and Reiner's design criterion
 
 	- Hunter and Reiner (1965)
-		Designs for discriminating between two rival models
+		Designs for discriminating between two rival models.
 		Technometrics 7(3):307-323
 	"""
 	mu, _, _, _, n, M, _ = _reshape(mu,s2,None,None)
@@ -69,7 +69,7 @@ def BH (mu, s2, noise_var=None, pps=None):
 	models by Prasad and Someswara Rao.
 
 	- Box and Hill (1967)
-		Discrimination among mechanistic models
+		Discrimination among mechanistic models.
 		Technometrics 9(1):57-71
 	- Prasad and Someswara Rao (1977)
 		Use of expected likelihood in sequential model 
@@ -98,15 +98,15 @@ def BF (mu, s2, noise_var=None, pps=None):
 
 	- Buzzi-Ferraris and Forzatti (1983)
 		Sequential experimental design for model discrimination 
-		in the case of multiple responses
+		in the case of multiple responses.
 		Chem. Eng. Sci. 39(1):81-85
 	- Buzzi-Ferraris et al. (1984)
 		Sequential experimental design for model discrimination 
-		in the case of multiple responses
+		in the case of multiple responses.
 		Chem. Eng. Sci. 39(1):81-85
 	- Buzzi-Ferraris et al. (1990)
 		An improved version of sequential design criterion for 
-		discrimination among rival multiresponse models
+		discrimination among rival multiresponse models.
 		Chem. Eng. Sci. 45(2):477-481
 	"""
 	mu, s2, noise_var, _, n, M, _ = _reshape(mu, s2, noise_var, None)
@@ -127,10 +127,10 @@ def AW (mu, s2, noise_var=None, pps=None):
 	"""
 	Modified Expected Akaike Weights Decision Criterion.
 
-	- Michalak et al. (2010). 
+	- Michalik et al. (2010). 
 		Optimal Experimental Design for Discriminating Numerous 
 		Model Candidates: The AWDC Criterion.
-		In: Ind. Eng. Chem. Res. 49:913-919
+		Ind. Eng. Chem. Res. 49:913-919
 	"""
 	mu, s2, noise_var, pps, n, M, _ = _reshape(mu, s2, noise_var, pps)
 
