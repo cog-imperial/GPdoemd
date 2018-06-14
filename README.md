@@ -10,13 +10,9 @@ The GPdoemd package has been tested and validated on OSX and Ubuntu. No guarante
 
 ##### Requirements
 Python 3.4+
-
-Required python packages are:
 * numpy >= 1.7
 * scipy >= 0.17
 * [GPy](https://github.com/SheffieldML/GPy)
-
-GPy (at the time of writing this) requires the packages six and paramz >= 0.9.0.
 
 ##### Creating a virtual environment
 We recommend installing GPdoemd in a virtual environment. To set up a new virtual environment called myenv (example name), run the command
