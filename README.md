@@ -1,9 +1,7 @@
 # GPdoemd
 [![Build Status](https://travis-ci.org/cog-imperial/GPdoemd.svg?branch=dev)](https://travis-ci.org/cog-imperial/GPdoemd/branches) [![codecov](https://codecov.io/gh/cog-imperial/GPdoemd/branch/dev/graph/badge.svg)](https://codecov.io/gh/cog-imperial/GPdoemd/branch/dev) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Design of experiments for model discrimination using Gaussian process surrogate models.** 
-
-[arXiv paper](https://arxiv.org/abs/1802.04170)
+[**Design of experiments for model discrimination using Gaussian process surrogate models.**](http://proceedings.mlr.press/v80/olofsson18a.html)
 
 ## Installation
 The GPdoemd package has been tested and validated on OSX and Ubuntu. No guarantees are provided that GPdoemd works on Windows-based systems.
