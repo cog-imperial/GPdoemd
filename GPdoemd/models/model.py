@@ -156,11 +156,11 @@ class Model:
 		        'old_pmean':   self._save_var('_old_pmean')
 		        }
 
-	def _load_save_dict (self, save_dict):
+	def _load_save_dict (self, save_dict): # pragma: no cover
 		self.pmean      = save_dict['pmean']
 		self._old_pmean = save_dict['old_pmean']
 
-	def save (self, filename):
+	def save (self, filename): # pragma: no cover
 		assert isinstance(filename, str)
 		# Filename ending
 		suffix = '.gpdoemd.model'
@@ -172,7 +172,7 @@ class Model:
 		with open(filename,'wb') as f:
 			pickle.dump(save_dict, f, pickle.HIGHEST_PROTOCOL)
 
-	def load (self, filename):
+	def load (self, filename): # pragma: no cover
 		assert isinstance(filename, str)
 		# Filename ending
 		suffix = '.gpdoemd.model'
