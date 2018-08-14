@@ -4,7 +4,7 @@ import numpy as np
 import random 
 random.seed(12345)
 
-from GPdoemd.models import GPModel
+from GPdoemd.models import VanillaGPModel
 from GPdoemd.kernels import RBF
 from GPdoemd.marginal import GPMarginal as marg
 from GPdoemd.marginal import TaylorFirstOrder
@@ -33,7 +33,7 @@ d = {
 	'dim_p':       len(pb),
 	'num_outputs': E
 }
-M = GPModel(d)
+M = VanillaGPModel(d)
 
 N  = 50
 Xs = np.random.rand(N, D)

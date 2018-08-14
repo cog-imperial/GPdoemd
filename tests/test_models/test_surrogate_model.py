@@ -6,11 +6,7 @@ import pytest
 import numpy as np 
 import warnings
 
-from GPy.models import GPRegression
-
-from GPdoemd.models import GPModel
-from GPdoemd.kernels import RBF
-from GPdoemd.marginal import TaylorFirstOrder
+from GPdoemd.models import SurrogateModel
 
 """
 SET UP MODEL ONCE
@@ -33,7 +29,7 @@ d = {
 	'dim_p':       len(p_bounds),
 	'num_outputs': 2
 }
-M = GPModel(d)
+M = SurrogateModel(d)
 
 
 X  = np.array([[10., 5.], [10., 8.], [20., 5.], [20., 8.]])
@@ -56,7 +52,7 @@ ystd  = np.std(  Y, axis=0 )
 TESTS
 """
 
-class TestGPModel:
+class TestSurrogateModel:
 
 	"""
 	Binary variables
@@ -64,7 +60,7 @@ class TestGPModel:
 	def test_binary_variables_integer (self):
 		d2 = d.copy()
 		d2['binary_variables'] = 1
-		Mt = GPModel(d2)
+		Mt = SurrogateModel(d2)
 		assert isinstance(Mt.binary_variables, list)
 		assert len( Mt.binary_variables ) == 1
 		assert Mt.binary_variables[0] == 1
@@ -77,13 +73,13 @@ class TestGPModel:
 		for t in T:
 			d2['binary_variables'] = t
 			with pytest.raises(AssertionError) as errinfo:
-				Mt = GPModel(d2)
+				Mt = SurrogateModel(d2)
 			assert 'Value outside range' in str(errinfo.value)
 
 	def test_binary_variables_list (self):
 		d2 = d.copy()
 		d2['binary_variables'] = [1]
-		Mt = GPModel(d2)
+		Mt = SurrogateModel(d2)
 		assert isinstance(Mt.binary_variables, list)
 		assert len( Mt.binary_variables ) == 1
 		assert Mt.binary_variables[0] == 1
@@ -96,7 +92,7 @@ class TestGPModel:
 		for t in T:
 			d2['binary_variables'] = t
 			with pytest.raises(AssertionError) as errinfo:
-				Mt = GPModel(d2)
+				Mt = SurrogateModel(d2)
 			assert 'Value outside range' in str(errinfo.value)
 		# Test cases
 		T  = [ [[-1]], [np.array([0])] ]
@@ -104,7 +100,7 @@ class TestGPModel:
 		for t in T:
 			d2['binary_variables'] = t
 			with pytest.raises(AssertionError) as errinfo:
-				Mt = GPModel(d2)
+				Mt = SurrogateModel(d2)
 			assert 'Value not integer' in str(errinfo.value)
 
 	def test_binary_variables_else (self):
@@ -115,7 +111,7 @@ class TestGPModel:
 		for t in T:
 			d2['binary_variables'] = t
 			with pytest.raises(ValueError) as errinfo:
-				Mt = GPModel(d2)
+				Mt = SurrogateModel(d2)
 			assert 'Binary variable must be list or integer' in str(errinfo.value)
 	
 
@@ -272,7 +268,7 @@ class TestGPModel:
 		assert M.zmax.shape  == (4,)
 
 	def test_training_data (self):
-		Mt = GPModel(d)
+		Mt = SurrogateModel(d)
 		self._is_none(Mt)
 
 		Mt.Z = Z
@@ -282,67 +278,6 @@ class TestGPModel:
 
 		Mt.clear_training_data()
 		self._is_none(Mt)
-
-	"""
-	Test GP surrogate
-	"""
-	def test_gp_surrogate (self):
-		Mt = GPModel(d)
-		Mt.set_training_data(Z, Y)
-		# Initialised as None
-		assert Mt.gps is None
-
-		# Set up GP surrogate
-		Mt.gp_surrogate(kern_x = RBF, kern_p = RBF)
-		assert len( Mt.gps ) == 2 # Number of outputs
-		for gps in Mt.gps:
-			assert len( gps ) == 1 # Number of binary variables
-			assert isinstance( gps[0], GPRegression )
-
-		# GP noise variance
-		assert isinstance( Mt.gp_noise_var, float)
-
-		# Hyperparameters
-		assert Mt.hyp is None
-		hyps  = [[ (i + 0.1) * (j + 0.5) * gp[:] for j,gp in enumerate(gps)] \
-					for i,gps in enumerate(Mt.gps)]
-		Mt.hyp = hyps
-		assert Mt.hyp is not None
-
-		Mt.gp_load_hyp()
-		for hyp, gps in zip( hyps, Mt.gps ):
-			for h, gp in zip( hyp, gps ):
-				assert np.all( h == gp[:] )
-
-		Mt.pmean = np.array([3., 4.])
-		M,S = Mt.predict(Xs)
-		assert M.shape == (len(Xs),2)
-		assert S.shape == (len(Xs),2)
-
-
-
-	"""
-	Marginal surrogate
-	"""
-	def test_gprm (self):
-		p = np.array([3., 4.])
-
-		Mt = GPModel(d)
-		Mt.pmean = np.array([3., 4.])
-		assert Mt.gprm is None
-		Mt.gp_surrogate(Z=Z, Y=Y, kern_x=RBF, kern_p=RBF)
-		Mt.marginal_init_and_compute_covar(TaylorFirstOrder, Xs)
-		M,S = Mt.marginal_predict(Xs)
-		assert M.shape == (len(Xs),2)
-		assert S.shape == (len(Xs),2,2)
-
-		# Clear surrogate model
-		Mt.clear_surrogate_model()
-		assert Mt.Z is None
-		assert Mt.Y is None
-		assert Mt.gps is None
-		assert Mt.hyp is None
-		assert Mt.gprm is None
 
 
 	"""
