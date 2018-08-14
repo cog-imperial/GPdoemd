@@ -105,9 +105,9 @@ class VTHR2014odeModel:
 
 		# Return measurable output m at time t
 		_, Ap, _, Bp, _, Cp, BpCp, _, Dp = range( 9 )
-		m = int( np.floor(m) )
-		m = [Ap, Bp, Cp, BpCp, Dp][ m ]
-		return [Y, T] if all_t else Y[-1, m]
+		m = [Ap, Bp, Cp, BpCp, Dp]
+		m = m if all_t else m[ int( np.floor(m) ) ]
+		return [Y[::10,m], T[::10]] if all_t else Y[-1, m]
 
 
 """
