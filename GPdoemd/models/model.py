@@ -27,8 +27,6 @@ from os.path import isfile
 import numpy as np 
 import pickle
 
-from ..marginal import Analytic, Numerical
-
 class Model:
 	def __init__ (self, model_dict):
 		# Read dictionnary
@@ -36,11 +34,10 @@ class Model:
 		self.call        = model_dict['call']
 		self.dim_x       = model_dict['dim_x']
 		self.dim_p       = model_dict['dim_p']
-		self.num_outputs = model_dict.get('num_outputs',1)
+		self.num_outputs = model_dict.get('num_outputs', 1)
 		# Optional parameters
 		self.p_bounds         = model_dict.get('p_bounds', [])
 		self.meas_noise_var   = model_dict.get('meas_noise_var', 1.)
-		self.binary_variables = []
 
 	"""
 	Properties
@@ -140,44 +137,6 @@ class Model:
 		M = np.array([self.call(x, p) for x in xnew])
 		S = np.zeros(M.shape)
 		return M, S
-
-
-
-
-
-	"""
-	Marginal predictions
-	"""
-	@property
-	def gprm (self):
-		return None if not hasattr(self,'_gprm') else self._gprm
-	@gprm.setter
-	def gprm (self, value):
-		assert isinstance(value, (Numerical, Analytic))
-		self._gprm = value
-	@gprm.deleter
-	def gprm (self):
-		self._gprm = None
-
-	def marginal_init (self, method):
-		self.gprm = method( self, self.pmean )
-
-	def marginal_compute_covar (self, Xdata):
-		if self.gprm is None:
-			return None
-		mvar = self.meas_noise_var
-		self.gprm.compute_param_covar(Xdata, mvar)
-
-	def marginal_init_and_compute_covar (self, method, Xdata):
-		self.marginal_init(method)
-		self.marginal_compute_covar(Xdata)
-
-	def marginal_predict (self, xnew):
-		if self.gprm is None:
-			return None
-		return self.gprm(xnew)
-
-
 
 
 	"""
