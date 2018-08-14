@@ -23,15 +23,14 @@ SOFTWARE.
 """
 
 import numpy as np 
-import warnings
 
 from GPy.models import SparseGPRegression
 
-from . import GPModel
+from . import VanillaGPModel
 from ..utils import binary_dimensions
 
 
-class SparseGPModel (GPModel):
+class SparseGPModel (VanillaGPModel):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)
 
