@@ -56,3 +56,16 @@ class TestCaseStudy:
 		x[2] = 1
 		y  = M( x )
 		assert y.shape == (E,)
+
+	def test_name (self):
+		i   = 1
+		M,_ = get(i)
+		assert isinstance(M.name,str)
+		assert M.name == 'M2'
+
+	def test_overflow_protection (self):
+		M, _ = get(i=4)
+		x    = np.array([1., 0.01, 0])
+		C, dC = M(x)
+		assert 0.999 <= C[0] <= 1.001
+		assert -0.001 <= dC[0,0] <= 0.001
