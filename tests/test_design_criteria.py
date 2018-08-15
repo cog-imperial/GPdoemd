@@ -3,8 +3,6 @@ import pytest
 import numpy as np 
 from GPdoemd.design_criteria import _reshape, HR, BH, BF, AW, JR
 
-from pdb import set_trace as st
-
 N = 15
 M = 3
 E = 2
