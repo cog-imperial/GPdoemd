@@ -1,6 +1,3 @@
 
-from .gp_marginal import GPMarginal
-from .taylor_first import TaylorFirstOrder
-from .taylor_second import TaylorSecondOrder
-from .analytic import Analytic
-from .numerical import Numerical
+from .taylor_first_order import taylor_first_order
+from .taylor_second_order import taylor_second_order
