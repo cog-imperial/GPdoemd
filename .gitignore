@@ -4,6 +4,7 @@
 .coverage
 *.cover
 __pycache__
+__old__
 .cache
 .eggs
 .hypothesis
