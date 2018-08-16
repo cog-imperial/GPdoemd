@@ -64,8 +64,8 @@ class TestCaseStudy:
 		assert M.name == 'M2'
 
 	def test_overflow_protection (self):
-		M, _ = get(i=4)
-		x    = np.array([1., 0.01, 0])
-		C, dC = M(x)
+		M     = get()[1][4]
+		x, p  = np.array([1., 0.01, 0]), 0.025
+		C, dC = M(x,p,grad=True)
 		assert 0.999 <= C[0] <= 1.001
 		assert -0.001 <= dC[0,0] <= 0.001
