@@ -27,6 +27,7 @@ import numpy as np
 def taylor_second_order (model, xnew):
 	N, E, D = len(xnew), model.num_outputs, model.dim_p
 	M, s2   = model.predict(xnew)
+	assert M.shape == (N, E) and s2.shape == (N, E)
 	dmu     = np.zeros((N,E,D))
 	ddmuA   = np.zeros((N,E,D,D))
 	
