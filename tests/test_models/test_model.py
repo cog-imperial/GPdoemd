@@ -25,7 +25,7 @@ d = {
 	'meas_noise_var': np.array([1,2])
 }
 M  = Model(d)
-Xs = np.random.uniform([10, 5], [20, 8], size=(10,2))
+Xs = np.random.uniform(x_bounds[:,0], x_bounds[:,1], size=(10,2))
 
 
 """
@@ -70,6 +70,7 @@ class TestModel:
 		M,S = Mt.predict(Xs)
 		assert M.shape == (len(Xs),2)
 		assert S.shape == (len(Xs),2)
+		assert np.all(S == 0)
 
 	"""
 	Test dictionary

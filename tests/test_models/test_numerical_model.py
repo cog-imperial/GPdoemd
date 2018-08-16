@@ -1,8 +1,9 @@
 
 import pytest
 import numpy as np 
+from numpy.testing import assert_array_almost_equal
 
-from GPdoemd.models import AnalyticModel
+from GPdoemd.models import NumericalModel
 
 
 """
@@ -24,7 +25,7 @@ d = {
 	'num_outputs':    2,
 	'meas_noise_var': np.array([1,2])
 }
-Mt       = AnalyticModel(d)
+Mt       = NumericalModel(d)
 Mt.pmean = np.array([2.5, 4.])
 Xs       = np.random.uniform([10, 5], [20, 8], size=(10,2))
 
@@ -32,7 +33,7 @@ Xs       = np.random.uniform([10, 5], [20, 8], size=(10,2))
 """
 TESTS
 """
-class TestAnalyticModel:
+class TestNumericalModel:
 
 	"""
 	Test surrogate model
@@ -52,7 +53,8 @@ class TestAnalyticModel:
 			assert der.shape == (len(Xs), Mt.dim_p)
 			dtrue      = np.zeros((len(Xs), Mt.dim_p))
 			dtrue[:,e] = Xs[:,e]
-			assert np.all( der == dtrue )
+			#st()
+			assert_array_almost_equal( der, dtrue, decimal=4 )
 
 	def test_d2_mu_d_p2 (self):
 		for e in range( Mt.num_outputs ):
@@ -68,5 +70,3 @@ class TestAnalyticModel:
 		for e in range( Mt.num_outputs ):
 			der = Mt.d2_s2_d_p2(e, Xs)
 			assert der is NotImplementedError
-
-			

@@ -276,7 +276,7 @@ class TestSurrogateModel:
 		self._correct_shape(Mt)
 		self._correct_shape(M)
 
-		Mt.clear_training_data()
+		Mt.clear_model()
 		self._is_none(Mt)
 
 
