@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from os.path import isfile
+import warnings
 
 import numpy as np 
 import pickle
@@ -38,6 +39,7 @@ class Model:
 		# Optional parameters
 		self.p_bounds         = model_dict.get('p_bounds', [])
 		self.meas_noise_var   = model_dict.get('meas_noise_var', 1.)
+		self.binary_variables = []
 
 	"""
 	Properties
@@ -78,7 +80,8 @@ class Model:
 		if isinstance(value, (int, float)):
 			value = np.array([value] * self.num_outputs)
 		assert isinstance(value, np.ndarray)
-		assert np.all( value > 0. )
+		if value.ndim == 1:
+			assert np.all( value > 0. )
 		self._meas_noise_var = value
 	@property
 	def meas_noise_covar (self):
@@ -129,14 +132,60 @@ class Model:
 
 	def param_estim (self, Xdata, Ydata, method, p_bounds=None):
 		self.pmean = method(self, Xdata, Ydata, p_bounds)
+		
+	"""
+	Model parameter covariance
+	"""
+	@property
+	def Sigma (self):
+		return None if not hasattr(self,'_Sigma') else self._Sigma
+	@Sigma.setter
+	def Sigma (self, value):
+		if value is None:
+			self._Sigma = None
+		else:
+			assert isinstance(value, np.ndarray)
+			assert value.shape == (self.dim_p, self.dim_p)
+			self._Sigma = value.copy()
+	@Sigma.deleter
+	def Sigma (self):
+		self._Sigma = None
 
-	# Model prediction
-	def predict (self, xnew, p=None):
-		if p is None:
-			p = self.pmean
-		M = np.array([self.call(x, p) for x in xnew])
+	def compute_param_covar (self, method, Xdata):
+		self.Sigma = method(self, Xdata, self.meas_noise_var)
+
+	"""
+	Model prediction
+	"""
+	def predict (self, xnew):
+		assert self.pmean is not None
+		M = np.array([self.call(x, self.pmean) for x in xnew])
+		assert M.shape == (len(xnew), self.num_outputs)
 		S = np.zeros(M.shape)
 		return M, S
+
+
+	"""
+	Derivatives
+	"""
+	def d_mu_d_p (self, e, X):
+		return NotImplementedError
+
+	def d2_mu_d_p2 (self, e, X):
+		return NotImplementedError
+
+	def d_s2_d_p (self, e, X):
+		return NotImplementedError
+
+	def d2_s2_d_p2 (self, e, X):
+		return NotImplementedError
+
+
+	"""
+	Clear model
+	"""
+	def clear_model (self):
+		del self.pmean
 
 
 	"""
@@ -153,12 +202,14 @@ class Model:
 	def _get_save_dict (self):
 		return {
 				'pmean':       self.pmean,
-		        'old_pmean':   self._save_var('_old_pmean')
+		        'old_pmean':   self._save_var('_old_pmean'),
+		        'Sigma':       self.Sigma
 		        }
 
 	def _load_save_dict (self, save_dict): # pragma: no cover
 		self.pmean      = save_dict['pmean']
 		self._old_pmean = save_dict['old_pmean']
+		self.Sigma      = save_dict['Sigma']
 
 	def save (self, filename): # pragma: no cover
 		assert isinstance(filename, str)

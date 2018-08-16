@@ -7,7 +7,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
+copies of the Software, and to permit persons to whom the Software is 
 furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
@@ -28,8 +28,9 @@ from GPy.models import GPRegression
 from GPy.kern import Kern
 
 from . import SurrogateModel
-from ..marginal import GPMarginal
 from ..utils import binary_dimensions
+
+from pdb import set_trace as st
 
 
 class VanillaGPModel (SurrogateModel):
@@ -182,11 +183,8 @@ class VanillaGPModel (SurrogateModel):
 		self.hyp = hyp
 
 
-	def predict (self, xnew, p=None):
-		if p is None:
-			p = self.pmean
+	def _predict (self, xnew, p):
 		znew    = np.array([ x.tolist() + p.tolist() for x in xnew ])
-		znew    = self.transform_z(znew)
 		R, I, J = binary_dimensions(znew, self.binary_variables)
 		znew    = znew[:,I]
 
@@ -198,51 +196,95 @@ class VanillaGPModel (SurrogateModel):
 			Jr = J==r
 			if not np.any(Jr):
 				continue
-
 			for e in range( self.num_outputs ):
 				I          = np.ix_(Jr,[e])
 				M[I], S[I] = self.gps[e][r].predict_noiseless(znew[Jr])
+		return M, S
 
-		return self.backtransform_prediction(M,S)
 
-	def clear_surrogate_model (self):
+	"""
+	Derivatives
+	"""
+	def _d_mu_d_p (self, e, X):
+		R, I, J = binary_dimensions(X, self.binary_variables)
+		n, E, D = len(X), self.num_outputs, self.dim_p
+		dx      = self.dim_x - self.dim_b
+		dmu     = np.zeros((n,D))
+		for r in R:
+			Jr = (J==r)
+			if not np.any(Jr):
+				continue
+			Z  = self.get_Z(X[ np.ix_(Jr,I) ])
+			gp = self.gps[e][r]
+			dmu[Jr] = gp.predictive_gradients(Z)[0][:,dx:,0]
+		return dmu
+
+	def _d2_mu_d_p2 (self, e, X):
+		R, I, J = binary_dimensions(X, self.binary_variables)
+		n, E, D = len(X), self.num_outputs, self.dim_p
+		dx      = self.dim_x - self.dim_b
+		ddmu    = np.zeros((n,D,D))
+		for r in R:
+			Jr  = (J==r)
+			if not np.any(Jr):
+				continue
+			Z   = self.get_Z(X[ np.ix_(Jr,I) ])
+			gp  = self.gps[e][r]
+			gpX = gp._predictive_variable
+			tmp = -gp.kern.kernx.K(Z, gpX) * gp.posterior.woodbury_vector.T
+			dt  = np.sum( gp.kern.kernp.gradients_XX(tmp, Z, gpX), axis=1 )
+			ddmu[Jr] = dt[:,dx:,dx:]
+		return ddmu
+
+	def _d_s2_d_p (self, e, X):
+		R, I, J = binary_dimensions(X, self.binary_variables)
+		n, E, D = len(X), self.num_outputs, self.dim_p
+		dx      = self.dim_x - self.dim_b
+		ds2     = np.zeros((n,D))
+		for r in R:
+			Jr = (J==r)
+			if not np.any(Jr):
+				continue
+			Z  = self.get_Z(X[ np.ix_(Jr,I) ])
+			gp = self.gps[e][r]
+			ds2[Jr] = gp.predictive_gradients(Z)[1][:,dx:]
+		return ds2
+
+	def _d2_s2_d_p2 (self, e, X):
+		R, I, J = binary_dimensions(X, self.binary_variables)
+		n, E, D = len(X), self.num_outputs, self.dim_p
+		dx      = self.dim_x - self.dim_b
+		dds2    = np.zeros((n,D,D))
+		for r in R:
+			Jr  = (J==r)
+			if not np.any(Jr):
+				continue
+			Z   = self.get_Z(X[ np.ix_(Jr,I) ])
+			gp  = self.gps[e][r]
+			gpX = gp._predictive_variable
+			iK  = gp.posterior.woodbury_inv
+
+			# d k / d p
+			kx = gp.kern.kernx.K(Z, gpX)
+			dk = np.zeros((n, gpX.shape[0], self.dim_p))
+			for i in range( gpX.shape[0] ):
+				dt      = gp.kern.kernp.gradients_X(kx[:,[i]], Z, gpX[[i]])
+				dk[:,i] = dt[:,dx:]
+			dkiKdk = np.einsum('ijk,jn,inm->ikm', dk, iK, dk)
+
+			# d^2 k / d p^2
+			kiK = np.matmul( gp.kern.K(Z, gpX), iK )
+			ddk = np.sum( gp.kern.kernp.gradients_XX(-kx*kiK, Z, gpX), axis=1 )
+			ddk = ddk[:,dx:,dx:]
+
+			# d^2 s2 / d p^2
+			dds2[Jr] = -2. * ( ddk + dkiKdk )
+		return dds2
+
+
+	"""
+	Clear model
+	"""
+	def clear_model (self):
 		del self.gps
-		del self.hyp
-		self.clear_training_data()
-		if not self.gprm is None:
-			del self.gprm
-
-
-	"""
-	Marginal surrogate predictions
-	"""
-	@property
-	def gprm (self):
-		return None if not hasattr(self,'_gprm') else self._gprm
-	@gprm.setter
-	def gprm (self, value):
-		assert isinstance(value, GPMarginal)
-		self._gprm = value
-	@gprm.deleter
-	def gprm (self):
-		self._gprm = None
-
-	def marginal_init (self, method):
-		self.gprm = method( self, self.transform_p(self.pmean) )
-
-	def marginal_compute_covar (self, Xdata):
-		if self.gprm is None:
-			return None
-		Xdata = self.transform_x(Xdata)
-		mvar  = self.transformed_meas_noise_var
-		self.gprm.compute_param_covar(Xdata, mvar)
-
-	def marginal_init_and_compute_covar (self, method, Xdata):
-		self.marginal_init(method)
-		self.marginal_compute_covar(Xdata)
-
-	def marginal_predict (self, xnew):
-		if self.gprm is None:
-			return None
-		M, S = self.gprm( self.transform_x(xnew) )
-		return self.backtransform_prediction(M, S)
+		super(VanillaGPModel,self).clear()

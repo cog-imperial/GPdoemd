@@ -26,15 +26,38 @@ import numpy as np
 
 from . import Model
 
-class AnalyticModel (Model):
+class NumericalModel (Model):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)
+		self.eps = model_dict.get('eps', 1e-6)
+
+	"""
+	Properties
+	"""
+	## Step length for finite difference derivatives
+	@property
+	def eps (self):
+		return self._eps
+	@eps.setter 
+	def eps (self, value):
+		if isinstance(value, float):
+			self._eps = value * np.ones(self.dim_p)
+		elif isinstance(value, (list,tuple,np.ndarray)):
+			self._eps = np.asarray(value)
+		assert self._eps.shape == (self.dim_p, )
 
 	"""
 	Derivatives
 	"""
 	def d_mu_d_p (self, e, X):
-		grad = lambda x: self.call(x, self.pmean, grad=True)[1]
-		dmu  = np.array([ grad(x) for x in X ])
-		assert dmu.shape == (len(X), self.num_outputs, self.dim_p)
+		N, E, D = len(X), self.num_outputs, self.dim_p
+		dmu     = np.zeros( (N, E, D) )
+		Y       = np.array([ self.call(x, self.pmean) for x in X ])
+		# Numerical differentiation
+		for d in range(D):
+			p0    = np.zeros(D)
+			p0[d] = self.eps[d]
+			for n in range(N):
+				yp = self.call(X[n], self.pmean+p0)
+				dmu[n,:,d] = (yp - Y[n]) / self.eps[d]
 		return dmu[:,e]

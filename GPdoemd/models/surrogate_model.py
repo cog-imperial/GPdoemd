@@ -91,6 +91,14 @@ class SurrogateModel (Model):
 	def zmax (self):
 		return None if not hasattr(self,'_zmax') else self._zmax
 
+	def get_Z (self, X, P=None):
+		if P is None:
+			assert self.pmean is not None
+			P = np.asarray([self.transform_p(self.pmean)] * len(X))
+			#P = P.reshape((len(X), self.dim_p))
+		assert P.shape == ( len(X), self.dim_p ), str(P.shape)+' != '+str(X.shape)+'  '+str(self.pmean)
+		return np.array([ x.tolist() + p.tolist() for x,p in zip(X,P) ])
+
 	## Training design variable values
 	@property
 	def X (self):
@@ -141,15 +149,13 @@ class SurrogateModel (Model):
 	def dim_b (self):
 		return len( self.binary_variables )
 
-	def set_training_data (self, Z, Y):
-		self.Z = Z
-		self.Y = Y
-
-	def clear_training_data (self):
-		del self.Z
-		del self.Y
-
-
+	def set_training_data (self, Z, Y, _Y=None):
+		if _Y is None:
+			self.Z = Z
+			self.Y = Y
+		else:
+			self.Z = np.c_[Z, Y]
+			self.Y = _Y
 
 
 	"""
@@ -157,7 +163,6 @@ class SurrogateModel (Model):
 	"""
 	def _none_check (self, arglist):
 		if np.any([a is None for a in arglist]):
-			warnings.warn('Transform value is None')
 			return True
 		return False
 
@@ -200,6 +205,7 @@ class SurrogateModel (Model):
 	# Transform to transform-space
 	def transform (self, trans, X, x1, x2, reverse=False):
 		if self._none_check([X, x1, x2]):
+			warnings.warn('Transform value is None')
 			return np.NaN
 		return trans( X, x1, x2, reverse=reverse )
 
@@ -264,6 +270,48 @@ class SurrogateModel (Model):
 			S = self.backtransform_y_cov(S)
 		return M, S
 
+	"""
+	Prediction
+	"""
+	def predict (self, xnew):
+		xt   = self.transform_x(xnew)
+		pt   = self.transform_p(self.pmean)
+		M, S = self._predict(xt, pt)
+		return self.backtransform_prediction(M, S)
+
+
+	"""
+	Derivatives
+	"""
+	def d_mu_d_p (self, e, X):
+		xnew = self.transform_x(X)
+		der  = self._d_mu_d_p(e, xnew)
+		return der * self.ystd[e] / (self.pmax - self.pmin)
+	def _d_mu_d_p (self, e, X):
+		return NotImplementedError
+
+	def d2_mu_d_p2 (self, e, X):
+		xnew = self.transform_x(X)
+		der  = self._d2_mu_d_p2(e, xnew)
+		diff = (self.pmax - self.pmin)
+		return der * self.ystd[e] / (diff[:,None] * diff[None,:])
+	def _d2_mu_d_p2 (self, e, X):
+		return NotImplementedError
+
+	def d_s2_d_p (self, e, X):
+		xnew = self.transform_x(X)
+		der  = self._d_s2_d_p(e, xnew)
+		return der * self.ystd[e]**2 / (self.pmax - self.pmin)
+	def _d_s2_d_p (self, e, X):
+		return NotImplementedError
+
+	def d2_s2_d_p2 (self, e, X):
+		xnew = self.transform_x(X)
+		der  = self._d2_s2_d_p2(e, xnew)
+		diff = (self.pmax - self.pmin)
+		return der * self.ystd[e]**2 / (diff[:,None] * diff[None,:])
+	def _d2_s2_d_p2 (self, e, X):
+		return NotImplementedError
 
 
 	"""
@@ -283,6 +331,38 @@ class SurrogateModel (Model):
 	def hyp (self):
 		self._hyp = None
 
+		
+	"""
+	Model parameter covariance
+	"""
+	@property
+	def Sigma_trans (self):
+		return None if not hasattr(self,'_Sigma_trans') else self._Sigma_trans
+	@Sigma_trans.setter
+	def Sigma_trans (self, value):
+		assert isinstance(value, np.ndarray)
+		assert value.shape == (self.dim_p, self.dim_p)
+		self._Sigma_trans = value.copy()
+	@Sigma_trans.deleter
+	def Sigma_trans (self):
+		self._Sigma_trans = None
+
+	def compute_param_covar (self, method, Xdata):
+		X_transform      = self.transform_x(Xdata)
+		meas_var_trans   = self.transformed_meas_noise_var
+		self.Sigma_trans = method(self, X_transform, meas_var_trans)
+		self.Sigma       = self.backtransform_p_cov(self.Sigma_trans)
+
+
+	"""
+	Clear model
+	"""
+	def clear_model (self):
+		del self.Z
+		del self.Y
+		del self.hyp
+		del self.Sigma
+		super(SurrogateModel,self).clear_model()
 
 	"""
 	Save and load model
@@ -292,6 +372,7 @@ class SurrogateModel (Model):
 		d['hyp'] = self.hyp
 		d['Z']   = self._save_var('Z', self.backtransform_z)
 		d['Y']   = self._save_var('Y', self.backtransform_y)
+		d['Sigma_trans'] = self.Sigma_trans
 		return d
 
 	def _load_save_dict (self, save_dict):
@@ -299,4 +380,5 @@ class SurrogateModel (Model):
 		self.Z   = save_dict['Z']
 		self.Y   = save_dict['Y']
 		self.hyp = save_dict['hyp']
+		self.Sigma_trans = save_dict['Sigma_trans']
 
