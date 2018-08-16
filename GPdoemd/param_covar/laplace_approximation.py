@@ -44,6 +44,7 @@ def laplace_approximation (model, Xdata):
 
 	for e1 in range(E):
 		dmu1 = model.d_mu_d_p(e1, Xdata)
+		assert dmu1.shape == (len(Xdata),D)
 		iA  += imeasvar[e1,e1] * np.matmul(dmu1.T, dmu1)
 
 		if meas_noise_var.ndim == 1:
@@ -52,6 +53,7 @@ def laplace_approximation (model, Xdata):
 			if imeasvar[e1,e2] == 0.:
 				continue
 			dmu2 = model.d_mu_d_p(e2, Xdata)
+			assert dmu2.shape == (len(Xdata),D)
 			iA  += imeasvar[e1,e2] * np.matmul(dmu1.T, dmu2)
 			iA  += imeasvar[e2,e1] * np.matmul(dmu2.T, dmu1)
 
