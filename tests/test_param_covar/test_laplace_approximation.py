@@ -16,7 +16,7 @@ N    = 25
 Xs   = np.random.rand(N, D)
 mvar = 0.05
 
-class TestModel:
+class SimpleModel:
 	def __init__ (self, meas_noise_var):
 		self.num_outputs    = E
 		self.dim_p          = E
@@ -37,27 +37,27 @@ class TestLaplaceApproximation:
 		def diff (S1,S2):
 			return np.abs(S1 - S2) / np.abs(S1 + S2 + 1e-300)
 
-		M = TestModel(mvar)
+		M = SimpleModel(mvar)
 		Sigma = laplace_approximation(M, Xs)
 		assert Sigma.shape == (D,D)
 		assert not np.any( np.isnan(Sigma) )
 		S = Sigma.copy()
 
-		M = TestModel(mvar * np.ones(E))
+		M = SimpleModel(mvar * np.ones(E))
 		Sigma = laplace_approximation(M, Xs)
 		assert Sigma.shape == (D,D)
 		assert not np.any( np.isnan(Sigma) )
 		d = diff(S, Sigma)
 		assert np.all( d < 1e-6 )
 
-		M = TestModel(mvar * np.eye(E))
+		M = SimpleModel(mvar * np.eye(E))
 		Sigma = laplace_approximation(M, Xs)
 		assert Sigma.shape == (D,D)
 		assert not np.any( np.isnan(Sigma) )
 		d = diff(S, Sigma)
 		assert np.all( d < 1e-6 )
 
-		M = TestModel(mvar * np.eye(E) + 1e-10 * np.ones((E,E)))
+		M = SimpleModel(mvar * np.eye(E) + 1e-10 * np.ones((E,E)))
 		Sigma = laplace_approximation(M, Xs)
 		assert Sigma.shape == (D,D)
 		assert not np.any( np.isnan(Sigma) )

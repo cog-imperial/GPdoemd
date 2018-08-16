@@ -14,7 +14,7 @@ E  = 2
 N  = 25
 Xs = np.random.rand(N, E)
 
-class TestModel:
+class SimpleModel:
 	def __init__ (self):
 		self.num_outputs = E
 		self.dim_p       = E
@@ -56,13 +56,13 @@ TESTS
 class TestTaylorApproximation:
 
 	def test_taylor_first_order (self):
-		M      = TestModel()
+		M      = SimpleModel()
 		mu, s2 = taylor_first_order(M, Xs)
 		assert mu.shape == (N,E)
 		assert s2.shape == (N,E,E)
 
 	def test_taylor_second_order (self):
-		M      = TestModel()
+		M      = SimpleModel()
 		mu, s2 = taylor_second_order(M, Xs)
 		assert mu.shape == (N,E)
 		assert s2.shape == (N,E,E)
