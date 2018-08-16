@@ -2,6 +2,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 
+from GPdoemd.marginal import taylor_first_order
+
 
 class Graphics:
 	def __init__ (self, X, Y, mvar):
@@ -77,7 +79,7 @@ class Graphics:
 		for x, ax in zip(self.X, axs):
 			xnew = np.array([[t, x[1], x[2]] for t in self.tau])
 			for M, c in zip(Ms, self.cols):
-				mu,s2 = M.marginal_predict(xnew)
+				mu,s2 = taylor_first_order( M, xnew )
 				self.plot_prediction(ax, c, mu, s2)
 		plt.show()
 
@@ -89,7 +91,7 @@ class Graphics:
 			
 			xnew = np.array([[t, x[1], x[2]] for t in self.tau])
 			for M, c in zip(Ms, self.cols):
-				mu,s2 = M.marginal_predict(xnew)
+				mu,s2 = taylor_first_order( M, xnew )
 				self.plot_prediction(ax, c, mu, s2)
 		plt.show()
 
