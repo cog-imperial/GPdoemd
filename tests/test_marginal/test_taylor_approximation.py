@@ -1,67 +1,68 @@
 
-import pytest
-import numpy as np 
 import random 
 random.seed(12345)
 
-from GPdoemd.models import VanillaGPModel
-from GPdoemd.kernels import RBF
+import pytest
+import numpy as np 
+
 from GPdoemd.marginal import taylor_first_order, taylor_second_order
-from GPdoemd.param_covar import laplace_approximation
 
 """
-SET UP MODEL ONCE
+TEST MODEL
 """
-E = 2
-D = E
+E  = 2
+N  = 25
+Xs = np.random.rand(N, E)
 
-xb = np.array([[0., 1.]] * E)
-pb = np.array([[0., 1.]] * D)
+class TestModel:
+	def __init__ (self):
+		self.num_outputs = E
+		self.dim_p       = E
+		self.Sigma       = 0.1 * np.eye(self.dim_p)
+		self.p           = 0.5 + np.random.rand(self.dim_p)
 
-ptrue = 0.5 * np.ones( D ) 
-mvar  = 0.05
+	def predict (self, x):
+		mu = self.p**2 * self.p[::-1] * x**2
+		s2 = self.p**1.5 / self.p[::-1] * x
+		return mu, s2
 
-def f (x, p):
-	return x * p
+	def d_mu_d_p (self, e, x):
+		ne        = 1 if e == 0 else 0
+		dmu       = np.zeros((len(x), self.dim_p))
+		dmu[:,e]  = 2 * self.p[e] * self.p[ne] * x[:,e]**2
+		dmu[:,ne] = self.p[e]**2 * x[:,e]**2
+		return dmu
 
-d = {
-	'name':        'testmodel',
-	'call':        f,
-	'dim_x':       len(xb),
-	'dim_p':       len(pb),
-	'num_outputs': E
-}
-M = VanillaGPModel(d)
+	def d2_mu_d_p2 (self, e, x):
+		ne          = 1 if e == 0 else 0
+		dmu         = np.zeros((len(x), self.dim_p, self.dim_p))
+		dmu[:,e,e]  = 2 * self.p[ne] * x[:,e]**2
+		dmu[:,e,ne] = 2 * self.p[e]  * x[:,e]**2
+		dmu[:,ne,e] = dmu[:,e,ne]
+		return dmu
 
-N  = 50
-Xs = np.random.rand(N, D)
-Ps = ptrue + 0.001 * np.random.randn(N, D)
-Zs = np.c_[Xs, Ps]
-Ys = f(Xs, Ps)
-M.gp_surrogate(Zs, Ys, RBF, RBF)
-
-h_len = len( M.gps[0][0][:] )
-hyp   = np.array([10] + [1e-1]*E + [10] + [1e-1]*E + [1e-5])
-hyps  = [[ hyp for _ in gps] for gps in M.gps]
-M.hyp = hyps
-M.gp_load_hyp()
-
-M.pmean = ptrue
-M.Sigma = laplace_approximation(M, Xs)
-
+	def d2_s2_d_p2 (self, e, x):
+		ne           = 1 if e == 0 else 0
+		ds2          = np.zeros((len(x), self.dim_p, self.dim_p))
+		ds2[:,e,e]   = 0.75 / (self.p[e]**0.5 * self.p[ne]) * x[:,e]
+		ds2[:,e,ne]  = -1.5 * self.p[e]**0.5 / ( self.p[ne]**2 ) * x[:,e]
+		ds2[:,ne,e]  = ds2[:,e,ne]
+		ds2[:,ne,ne] = 3 * self.p[e]**1.5 / ( self.p[ne]**3 ) * x[:,e]
+		return ds2
 
 """
 TESTS
 """
-
 class TestTaylorApproximation:
 
 	def test_taylor_first_order (self):
+		M      = TestModel()
 		mu, s2 = taylor_first_order(M, Xs)
 		assert mu.shape == (N,E)
 		assert s2.shape == (N,E,E)
 
 	def test_taylor_second_order (self):
+		M      = TestModel()
 		mu, s2 = taylor_second_order(M, Xs)
 		assert mu.shape == (N,E)
 		assert s2.shape == (N,E,E)
