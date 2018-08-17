@@ -69,5 +69,5 @@ class MeanTransform:
 	def prediction (self, M, S, back=False):
 		Mt = self(M, back=back)
 		if S.ndim == 2:
-			return M, self.var(S, back=back)
-		return M, self.cov(S, back=back)
+			return Mt, self.var(S, back=back)
+		return Mt, self.cov(S, back=back)
