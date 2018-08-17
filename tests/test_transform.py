@@ -1,4 +1,7 @@
 
+import random
+random.seed(12345)
+
 import pytest
 import numpy as np 
 from numpy.testing import assert_almost_equal
@@ -24,9 +27,6 @@ ystd  = np.std(  Y, axis=0 )
 MT    = MeanTransform(ymean, ystd)
 
 
-"""
-TESTS
-"""
 
 class TestBoxTransform:
 
@@ -41,7 +41,7 @@ class TestBoxTransform:
 
 	def test_backtrans_max (self):
 		Z = BT( np.ones(D), back=True )
-		assert np.all(Z == xmax)
+		assert np.all( np.abs(Z - xmax) <= 1e-10 )
 
 	def _trans_var (self, C, m, M):
 		return C / (M - m)**2
@@ -58,7 +58,7 @@ class TestBoxTransform:
 		return C / (mt[:,None] * mt[None,:])
 	def test_trans_cov(self):
 		Z  = np.random.rand(D,D)
-		Z  = np.matmul(Z, Z.T)
+		Z  = np.matmul(Z, Z.T) + 0.1 * np.eye(D)
 		Zt = self._trans_cov(Z, xmin, xmax)
 		Zp = BT.cov( Z )
 		assert_almost_equal(Zt, Zp)
@@ -95,7 +95,7 @@ class TestMeanTransform:
 		return C / (std[:,None] * std[None,:])
 	def test_trans_cov(self):
 		Z  = np.random.rand(D,D)
-		Z  = np.matmul(Z, Z.T)
+		Z  = np.matmul(Z, Z.T) + 0.1 * np.eye(D)
 		Zt = self._trans_cov(Z, ystd)
 		Zp = MT.cov( Z )
 		assert_almost_equal(Zt, Zp)

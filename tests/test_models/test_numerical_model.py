@@ -39,9 +39,10 @@ class TestNumericalModel:
 		Mt.eps = 1e-6
 
 	def test_invalid_eps (self):
-		for r in [ 'hej', np.ones(E+1) ]:
-			with pytest.raises(ValueError):
-				Mt.eps = r
+		with pytest.raises(ValueError):
+			Mt.eps = 'hej'
+		with pytest.raises(AssertionError):
+			Mt.eps = np.ones(E+1)
 		Mt.eps = 1e-6
 
 	def test_d_mu_d_p (self):

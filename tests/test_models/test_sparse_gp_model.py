@@ -4,9 +4,9 @@ import numpy as np
 import warnings
 
 from GPy.models import SparseGPRegression
+from GPy.kern import RBF
 
 from GPdoemd.models import SparseGPModel
-from GPdoemd.kernels import RBF
 
 """
 SET UP MODEL ONCE
@@ -14,7 +14,6 @@ SET UP MODEL ONCE
 
 x_bounds = np.array([[10., 20.], [5., 8.]])
 p_bounds = np.array([[ 2.,  4.], [3., 5.]])
-z_bounds = np.array( x_bounds.tolist() + p_bounds.tolist() )
 
 def f (x, p):
 	return x * p
@@ -44,10 +43,17 @@ Y = f(X, P)
 
 
 """
+Simple test kernel
+"""
+class Kern (RBF):
+	def __init__ (self, d, drange, name):
+		RBF.__init__(self, input_dim=d, active_dims=drange, name=name, ARD=True)
+
+
+"""
 TESTS
 """
-
-class TestGPModel:
+class TestSparseGPModel:
 
 	"""
 	Test GP surrogate
@@ -59,7 +65,7 @@ class TestGPModel:
 		assert Mt.gps is None
 
 		# Set up GP surrogate
-		Mt.gp_surrogate(kern_x = RBF, kern_p = RBF, num_inducing=10)
+		Mt.gp_surrogate(kern_x = Kern, kern_p = Kern, num_inducing=10)
 		assert len( Mt.gps ) == 2 # Number of outputs
 		for gps in Mt.gps:
 			assert len( gps ) == 1 # Number of binary variables

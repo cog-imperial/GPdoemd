@@ -21,6 +21,31 @@ class TestUtils:
 		assert np.all( j == J )
 		
 
+	def test_2_binary_dimensions_zeros(self):
+		bs = [1, 2]
+		Z  = np.array([ [ 0,  0],
+						[ 1,  0],
+						[ 1,  1],
+						[ 0,  1],
+						[ 0,  1],
+						[ 1,  0],
+						[ 0,  0],
+						[ 1,  1],
+						[ 1,  1],
+						[ 0,  1],
+						[ 0,  0] ])
+		N  = len(Z)
+		Z  = np.c_[ np.arange(N), Z, np.ones(N) ]
+
+		R  = np.arange( 4 )
+		J  = np.array([ 0, 1, 3, 2, 2, 1, 0, 3, 3, 2, 0 ])
+
+		r, j = binary_dimensions(Z, bs)
+
+		assert np.all( r == R )
+		assert np.all( j == J )
+		
+
 	def test_2_binary_dimensions(self):
 		bs = [1, 2]
 		Z  = np.array([ [-1, -1],

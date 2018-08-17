@@ -6,10 +6,9 @@ import pytest
 import numpy as np 
 
 from GPy.models import GPRegression
+from GPy.kern import RBF
 
 from GPdoemd.models import VanillaGPModel
-from GPdoemd.kernels import RBF
-#from GPdoemd.marginal import TaylorFirstOrder
 
 """
 SET UP MODEL ONCE
@@ -17,7 +16,6 @@ SET UP MODEL ONCE
 
 x_bounds = np.array([[10., 20.], [5., 8.]])
 p_bounds = np.array([[ 2.,  4.], [3., 5.]])
-z_bounds = np.array( x_bounds.tolist() + p_bounds.tolist() )
 
 def f (x, p):
 	return x * p
@@ -45,15 +43,15 @@ P = np.vstack(( P, Ps ))
 
 Z = np.c_[X, P]
 Y = f(X, P)
-M.set_training_data(Z, Y)
-
 ymean = np.mean( Y, axis=0 )
 ystd  = np.std(  Y, axis=0 )
 
 
-"""
-TESTS
-"""
+class Kern (RBF):
+	def __init__ (self, d, drange, name):
+		RBF.__init__(self, input_dim=d, active_dims=drange, name=name, ARD=True)
+M.pmean = np.random.uniform(*p_bounds.T)
+M.gp_surrogate(Z, Y, Kern, Kern)
 
 class TestVanillaGPModel:
 
@@ -67,7 +65,7 @@ class TestVanillaGPModel:
 		assert Mt.gps is None
 
 		# Set up GP surrogate
-		Mt.gp_surrogate(kern_x = RBF, kern_p = RBF)
+		Mt.gp_surrogate(kern_x = Kern, kern_p = Kern)
 		assert len( Mt.gps ) == 2 # Number of outputs
 		for gps in Mt.gps:
 			assert len( gps ) == 1 # Number of binary variables
@@ -93,10 +91,6 @@ class TestVanillaGPModel:
 		assert M.shape == (len(Xs),2)
 		assert S.shape == (len(Xs),2)
 
-
-	"""
-	Test GP optimise
-	"""
 	def test_gp_optimize (self):
 		Mt = VanillaGPModel(d)
 		Mt.set_training_data(Z, Y)
@@ -104,7 +98,7 @@ class TestVanillaGPModel:
 		assert Mt.gps is None
 
 		# Set up GP surrogate
-		Mt.gp_surrogate(kern_x = RBF, kern_p = RBF)
+		Mt.gp_surrogate(kern_x = Kern, kern_p = Kern)
 		assert len( Mt.gps ) == 2 # Number of outputs
 		for gps in Mt.gps:
 			assert len( gps ) == 1 # Number of binary variables
@@ -115,33 +109,29 @@ class TestVanillaGPModel:
 		Mt.gp_optimize()
 		assert Mt.hyp is not None
 
+	def test_d_mu_d_p (self):
+		for e in range( M.num_outputs ):
+			der = M.d_mu_d_p(e, X)
+			assert der.shape == (len(X), M.dim_p)
 
-	"""
-	Marginal surrogate
-	"""
-	"""
-	def test_gprm (self):
-		p = np.array([3., 4.])
+	def test_d2_mu_d_p2 (self):
+		for e in range( M.num_outputs ):
+			der = M.d2_mu_d_p2(e, X)
+			assert der.shape == (len(X), M.dim_p, M.dim_p)
 
-		Mt = VanillaGPModel(d)
-		Mt.pmean = np.array([3., 4.])
-		assert Mt.gprm is None
-		Mt.gp_surrogate(Z=Z, Y=Y, kern_x=RBF, kern_p=RBF)
-		res = Mt.marginal_predict(Xs)
-		assert res is None
-		Mt.marginal_init_and_compute_covar(TaylorFirstOrder, Xs)
-		M,S = Mt.marginal_predict(Xs)
-		assert M.shape == (len(Xs),2)
-		assert S.shape == (len(Xs),2,2)
+	def test_d_s2_d_p (self):
+		for e in range( M.num_outputs ):
+			der = M.d_s2_d_p(e, X)
+			assert der.shape == (len(X), M.dim_p)
 
-		# Clear surrogate model
-		Mt.clear_surrogate_model()
-		assert Mt.Z is None
-		assert Mt.Y is None
-		assert Mt.gps is None
-		assert Mt.hyp is None
-		assert Mt.gprm is None
-	"""
+	def test_d2_s2_d_p2 (self):
+		for e in range( M.num_outputs ):
+			der = M.d2_s2_d_p2(e, X)
+			assert der.shape == (len(X), M.dim_p, M.dim_p)
 
-
-
+	def test_clear_model (self):
+		Mt     = VanillaGPModel(d)
+		Mt.gps = [None] * Mt.num_outputs
+		assert Mt.gps is not None
+		Mt.clear_model() 
+		assert Mt.gps is None 
