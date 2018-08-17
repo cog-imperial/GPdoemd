@@ -39,12 +39,9 @@ class TestNumericalModel:
 		Mt.eps = 1e-6
 
 	def test_invalid_eps (self):
-		with pytest.raises(ValueError) as errinfo:
-			Mt.eps = 'hej'
-		assert 'eps has illegal type' in str(errinfo.value)
-		with pytest.raises(AssertionError) as errinfo:
-			Mt.eps = np.ones(E+1)
-		assert 'eps incorrect shape' in str(errinfo.value)
+		for r in [ 'hej', np.ones(E+1) ]:
+			with pytest.raises(ValueError):
+				Mt.eps = r
 		Mt.eps = 1e-6
 
 	def test_d_mu_d_p (self):
