@@ -377,24 +377,6 @@ class SurrogateModel (Model):
 	def hyp (self):
 		self._hyp = None
 
-		
-	"""
-	Model parameter covariance
-	"""
-	@property
-	def Sigma_trans (self):
-		#return None if not hasattr(self,'_Sigma_trans') else self._Sigma_trans
-		return self._Sigma_trans
-	@Sigma_trans.setter
-	def Sigma_trans (self, value):
-		assert isinstance(value, np.ndarray)
-		assert value.shape == (self.dim_p, self.dim_p)
-		self._Sigma_trans = value.copy()
-	@Sigma_trans.deleter
-	def Sigma_trans (self):
-		#self._Sigma_trans = None
-		del self._Sigma_trans
-
 
 	"""
 	Clear model
@@ -403,7 +385,6 @@ class SurrogateModel (Model):
 		del self.Z
 		del self.Y
 		del self.hyp
-		del self.Sigma
 		super(SurrogateModel,self).clear_model()
 
 	"""
@@ -411,16 +392,14 @@ class SurrogateModel (Model):
 	"""
 	def _get_save_dict (self):
 		d = super()._get_save_dict()
-		d['hyp']         = self.hyp
-		d['Z']           = self._save_var('Z', self.backtransform_z)
-		d['Y']           = self._save_var('Y', self.backtransform_y)
-		d['Sigma_trans'] = self.Sigma_trans
+		d['hyp'] = self.hyp
+		d['Z']   = self._save_var('Z', lambda z: self.trans_z(z, back=True))
+		d['Y']   = self._save_var('Y', lambda y: self.trans_y(y, back=True))
 		return d
 
 	def _load_save_dict (self, save_dict):
 		super()._load_save_dict(save_dict)
-		self.Z           = save_dict['Z']
-		self.Y           = save_dict['Y']
-		self.hyp         = save_dict['hyp']
-		self.Sigma_trans = save_dict['Sigma_trans']
+		self.Z   = save_dict['Z']
+		self.Y   = save_dict['Y']
+		self.hyp = save_dict['hyp']
 
