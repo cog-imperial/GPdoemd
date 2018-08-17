@@ -36,9 +36,8 @@ class TestModel:
 		assert M.name == 'testmodel'
 
 	def test_invalid_name (self):
-		with pytest.raises(AssertionError) as errinfo:
+		with pytest.raises(AssertionError):
 			M.name = 3
-		assert 'Model name has to be of type string' in str(errinfo.value)
 		
 	def test_call(self):
 		p = np.array([3., 4.])
@@ -46,18 +45,16 @@ class TestModel:
 		assert np.all(F == f(Xs, p))
 		
 	def test_invalid_call(self):
-		with pytest.raises(AssertionError) as errinfo:
+		with pytest.raises(AssertionError):
 			M.call = 3
-		assert 'Invalid call handle' in str(errinfo.value)
 
 	def test_num_outputs (self):
 		assert M.num_outputs == E
 
 	def test_invalid_num_outputs (self):
 		for r in ['hej', -2]:
-			with pytest.raises(AssertionError) as errinfo:
+			with pytest.raises(AssertionError):
 				M.num_outputs = r
-			assert 'Invalid no. of outputs' in str(errinfo.value)
 
 	def test_meas_noise_var (self):
 		assert M.meas_noise_var.ndim == 1
@@ -66,16 +63,10 @@ class TestModel:
 		assert C[0,0] == 1 and C[0,1] == 0 and C[1,0] == 0 and C[1,1] == 2
 
 	def test_invalid_meas_noise_var (self):
-		with pytest.raises(AssertionError) as errinfo:
-			M.meas_noise_var = 'hej'
-		assert 'Variance has to be numpy array' in str(errinfo.value)
-		with pytest.raises(AssertionError) as errinfo:
-			M.meas_noise_var = np.array([1., -1])
-		assert 'Variance must be +ve and >0' in str(errinfo.value)
-		for r in [np.random.rand(E+1), np.random.rand(E+1,E+1)]:
-			with pytest.raises(AssertionError) as errinfo:
+		R = ['hej', np.array([1.,-1]), np.random.rand(E+1), np.random.rand(E+1,E+1)]
+		for r in R:
+			with pytest.raises(AssertionError):
 				M.meas_noise_var = r
-			assert 'Incorrect shape' in str(errinfo.value)
 
 
 	def test_dim_x_and_p (self):
@@ -84,13 +75,10 @@ class TestModel:
 
 	def test_invalid_dim_x_and_p (self):
 		for r in ['hej', -2]:
-			with pytest.raises(AssertionError) as errinfo:
+			with pytest.raises(AssertionError):
 				M.dim_x = r
-			assert 'Invalid x dimensionality' in str(errinfo.value)
-		for r in ['hej', -2]:
-			with pytest.raises(AssertionError) as errinfo:
+			with pytest.raises(AssertionError):
 				M.dim_p = r
-			assert 'Invalid p dimensionality' in str(errinfo.value)
 
 	def test_pmean (self):
 		assert M.pmean is None
@@ -102,12 +90,9 @@ class TestModel:
 		assert np.all(M._old_pmean == pt)
 
 	def test_invalid_pmean (self):
-		with pytest.raises(AssertionError) as errinfo:
-			M.pmean = 1
-		assert 'pmean has to be numpy array' in str(errinfo.value)
-		with pytest.raises(AssertionError) as errinfo:
-			M.pmean = pt[:1]
-		assert 'pmean has incorrect shape' in str(errinfo.value)
+		for r in [1, pt[:1]]
+			with pytest.raises(AssertionError):
+				M.pmean = r
 
 	def test_Sigma (self):
 		assert M.Sigma is None
@@ -117,12 +102,9 @@ class TestModel:
 		assert M.Sigma is None
 
 	def test_invalid_Sigma (self):
-		with pytest.raises(AssertionError) as errinfo:
-			M.Sigma = 1
-		assert 'Sigma has to be numpy array' in str(errinfo.value)
-		with pytest.raises(AssertionError) as errinfo:
-			M.Sigma = np.random.randn(2*E, 2*E)
-		assert 'Incorrect shape' in str(errinfo.value)
+		for r in [1, np.random.randn(2*E, 2*E)]
+			with pytest.raises(AssertionError):
+				M.Sigma = r 
 
 	def test_prediction (self):
 		Mt       = Model(d)
@@ -140,23 +122,23 @@ class TestModel:
 
 	def test_d_mu_d_p (self):
 		for e in range( M.num_outputs ):
-			der = M.d_mu_d_p(e, Xs)
-			assert der is NotImplementedError
+			with pytest.raises(NotImplementedError):
+				der = M.d_mu_d_p(e, Xs)
 
 	def test_d2_mu_d_p2 (self):
 		for e in range( M.num_outputs ):
-			der = M.d2_mu_d_p2(e, Xs)
-			assert der is NotImplementedError
+			with pytest.raises(NotImplementedError):
+				der = M.d2_mu_d_p2(e, Xs)
 
 	def test_d_s2_d_p (self):
 		for e in range( M.num_outputs ):
-			der = M.d_s2_d_p(e, Xs)
-			assert der is NotImplementedError
+			with pytest.raises(NotImplementedError):
+				der = M.d_s2_d_p(e, Xs)
 
 	def test_d2_s2_d_p2 (self):
 		for e in range( M.num_outputs ):
-			der = M.d2_s2_d_p2(e, Xs)
-			assert der is NotImplementedError
+			with pytest.raises(NotImplementedError):
+				der = M.d2_s2_d_p2(e, Xs)
 
 	def test_clear_model (self):
 		Mt = Model(d)
