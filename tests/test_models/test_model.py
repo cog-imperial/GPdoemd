@@ -4,28 +4,26 @@ import numpy as np
 
 from GPdoemd.models import Model
 
-
 """
 SET UP MODEL ONCE
 """
-x_bounds = np.array([[10., 20.], [5., 8.]])
-p_bounds = np.array([[ 2.,  4.], [3., 5.]])
-
 def f (x, p, grad=False):
 	if not grad: 
 		return x * p
 	return x * p, np.array([[x[0],0],[0,x[1]]])
 
+E = 2
 d = {
 	'name':           'testmodel',
 	'call':           f,
-	'dim_x':          len(x_bounds),
-	'dim_p':          len(p_bounds),
-	'num_outputs':    2,
+	'dim_x':          E,
+	'dim_p':          E,
+	'num_outputs':    E,
 	'meas_noise_var': np.array([1,2])
-}
+	}
 M  = Model(d)
-Xs = np.random.uniform(x_bounds[:,0], x_bounds[:,1], size=(10,2))
+Xs = np.random.uniform([10, 5], [20, 8], size=(10,2))
+pt = np.array([3., 4.])
 
 
 """
@@ -34,62 +32,147 @@ TESTS
 
 class TestModel:
 
+	def test_name (self):
+		assert M.name == 'testmodel'
+
+	def test_invalid_name (self):
+		with pytest.raises(AssertionError) as errinfo:
+			M.name = 3
+		assert 'Model name has to be of type string' in str(errinfo.value)
+		
 	def test_call(self):
 		p = np.array([3., 4.])
 		F = M.call(Xs, p)
 		assert np.all(F == f(Xs, p))
-		#_,df = f(Xs, p, grad=True)
-		#assert np.all( df == Xs )
+		
+	def test_invalid_call(self):
+		with pytest.raises(AssertionError) as errinfo:
+			M.call = 3
+		assert 'Invalid call handle' in str(errinfo.value)
 
-	"""
-	Dimensions
-	"""
-	def test_dim_x (self):
-		assert M.dim_x == 2
-		assert M.dim_p == 2
+	def test_num_outputs (self):
+		assert M.num_outputs == E
 
-	"""
-	Test surrogate model
-	"""
-	def test_pmean (self):
-		p = np.array([3., 4.])
+	def test_invalid_num_outputs (self):
+		for r in ['hej', -2]:
+			with pytest.raises(AssertionError) as errinfo:
+				M.num_outputs = r
+			assert 'Invalid no. of outputs' in str(errinfo.value)
 
-		Mt = Model(d)
-		Mt.pmean = p
-		assert Mt._old_pmean is None
-		del Mt.pmean
-		assert Mt.pmean is None
-		assert np.all(Mt._old_pmean == p)
-
-	"""
-	Test surrogate model
-	"""
-	def test_prediction (self):
-		Mt = Model(d)
-		Mt.pmean = np.array([3., 4.])
-		M,S = Mt.predict(Xs)
-		assert M.shape == (len(Xs),2)
-		assert S.shape == (len(Xs),2)
-		assert np.all(S == 0)
-
-	"""
-	Test dictionary
-	"""
-	def test_dict (self):
-		p = np.array([3., 4.])
-		M.pmean = p
-		d = M._get_save_dict()
-		assert isinstance(d,dict)
-		assert np.all(d['pmean'] == p)
-
-	"""
-	Test measurement noise variance
-	"""
 	def test_meas_noise_var (self):
 		assert M.meas_noise_var.ndim == 1
 		C = M.meas_noise_covar
 		assert C.ndim == 2
-		assert C[0,0] == 1 and C[0,1] == 0 and C[1,0] == 0 and C[1,1] == 2 
+		assert C[0,0] == 1 and C[0,1] == 0 and C[1,0] == 0 and C[1,1] == 2
+
+	def test_invalid_meas_noise_var (self):
+		with pytest.raises(AssertionError) as errinfo:
+			M.meas_noise_var = 'hej'
+		assert 'Variance has to be numpy array' in str(errinfo.value)
+		with pytest.raises(AssertionError) as errinfo:
+			M.meas_noise_var = np.array([1., -1])
+		assert 'Variance must be +ve and >0' in str(errinfo.value)
+		for r in [np.random.rand(E+1), np.random.rand(E+1,E+1)]:
+			with pytest.raises(AssertionError) as errinfo:
+				M.meas_noise_var = r
+			assert 'Incorrect shape' in str(errinfo.value)
 
 
+	def test_dim_x_and_p (self):
+		assert M.dim_x == 2
+		assert M.dim_p == 2
 
+	def test_invalid_dim_x_and_p (self):
+		for r in ['hej', -2]:
+			with pytest.raises(AssertionError) as errinfo:
+				M.dim_x = r
+			assert 'Invalid x dimensionality' in str(errinfo.value)
+		for r in ['hej', -2]:
+			with pytest.raises(AssertionError) as errinfo:
+				M.dim_p = r
+			assert 'Invalid p dimensionality' in str(errinfo.value)
+
+	def test_pmean (self):
+		assert M.pmean is None
+		M.pmean = pt
+		assert np.all(M.pmean == pt)
+		assert M._old_pmean is None
+		del M.pmean
+		assert M.pmean is None
+		assert np.all(M._old_pmean == pt)
+
+	def test_invalid_pmean (self):
+		with pytest.raises(AssertionError) as errinfo:
+			M.pmean = 1
+		assert 'pmean has to be numpy array' in str(errinfo.value)
+		with pytest.raises(AssertionError) as errinfo:
+			M.pmean = pt[:1]
+		assert 'pmean has incorrect shape' in str(errinfo.value)
+
+	def test_Sigma (self):
+		assert M.Sigma is None
+		M.Sigma = np.eye(E)
+		assert isinstance(M.Sigma, np.ndarray)
+		del M.Sigma
+		assert M.Sigma is None
+
+	def test_invalid_Sigma (self):
+		with pytest.raises(AssertionError) as errinfo:
+			M.Sigma = 1
+		assert 'Sigma has to be numpy array' in str(errinfo.value)
+		with pytest.raises(AssertionError) as errinfo:
+			M.Sigma = np.random.randn(2*E, 2*E)
+		assert 'Incorrect shape' in str(errinfo.value)
+
+	def test_prediction (self):
+		Mt       = Model(d)
+		Mt.pmean = pt
+		M, S     = Mt.predict(Xs)
+		assert M.shape == (len(Xs), E)
+		assert S.shape == (len(Xs), E)
+		assert np.all(S == 0)
+
+	def test_invalid_prediction (self):
+		Mt = Model(d)
+		with pytest.raises(AssertionError) as errinfo:
+			M, S = Mt.predict(Xs)
+		assert 'pmean not set' in str(errinfo.value)
+
+	def test_d_mu_d_p (self):
+		for e in range( M.num_outputs ):
+			der = M.d_mu_d_p(e, Xs)
+			assert der is NotImplementedError
+
+	def test_d2_mu_d_p2 (self):
+		for e in range( M.num_outputs ):
+			der = M.d2_mu_d_p2(e, Xs)
+			assert der is NotImplementedError
+
+	def test_d_s2_d_p (self):
+		for e in range( M.num_outputs ):
+			der = M.d_s2_d_p(e, Xs)
+			assert der is NotImplementedError
+
+	def test_d2_s2_d_p2 (self):
+		for e in range( M.num_outputs ):
+			der = M.d2_s2_d_p2(e, Xs)
+			assert der is NotImplementedError
+
+	def test_clear_model (self):
+		Mt = Model(d)
+		assert Mt.pmean is None and Mt.Sigma is None
+		Mt.pmean = pt 
+		Mt.Sigma = np.eye(E)
+		assert Mt.pmean is not None and Mt.Sigma is not None
+		Mt.clear_model()
+		assert Mt.pmean is None and Mt.Sigma is None
+
+	def test_dict (self):
+		Mt       = Model(d)
+		Mt.pmean = pt
+		Mt.Sigma = np.eye(E)
+		dt       = Mt._get_save_dict()
+		assert isinstance(dt, dict)
+		assert dt['old_pmean'] is None
+		assert np.all(dt['pmean'] == pt)
+		assert np.all(dt['Sigma'] == np.eye(E))
