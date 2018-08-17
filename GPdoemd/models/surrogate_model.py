@@ -26,7 +26,6 @@ import numpy as np
 import warnings
 
 from . import Model
-from ..utils import binary_dimensions
 from ..transform import BoxTransform, MeanTransform
 
 
@@ -67,6 +66,35 @@ class SurrogateModel (Model):
 		else:
 			raise ValueError('Binary variable must be list or integer')
 
+	@property
+	def non_binary_variables (self):
+		return [i for i in range(self.dim_x) if not i in self.binary_variables]
+
+	def binary_dimensions (self, Z):
+		"""
+		Outputs
+			Range ( len( binary_variables ) )
+			Row indices for different binary variables
+		"""
+		lb = len( self.binary_variables )
+		if lb == 0:
+			n1, n2 = Z.shape
+			return [0], np.zeros(n1)
+
+		B = np.meshgrid( *( [[-1, 1]] * lb ) )
+		B = np.vstack( map( np.ravel, B) ).T
+
+		Zt = Z[:, self.binary_variables] - 0.5
+		J  = []
+		for z in Zt:
+			for j, b in enumerate(B):
+				if np.all(b * z > 0):
+					J.append(j)
+					break
+		#return range( 2**lb ), np.array(I), np.array(J)
+		return range( 2**lb ), np.array(J)
+	
+
 	## Number of binary variables
 	@property
 	def dim_b (self):
@@ -78,8 +106,7 @@ class SurrogateModel (Model):
 	## Training variable [X, P]
 	@property
 	def Z (self):
-		#return None if not hasattr(self,'_Z') else self._Z
-		return self._Z
+		return None if not hasattr(self,'_Z') else self._Z
 	@Z.setter
 	def Z (self, value):
 		if value is not None:
@@ -96,10 +123,10 @@ class SurrogateModel (Model):
 			self._Z      = self.trans_z(value)
 	@Z.deleter
 	def Z (self):
-		#self._Z    = None
+		self._Z    = None
 		#self._zmin = None
 		#self._zmax = None
-		del self._Z   
+		#del self._Z   
 		del self._zmin
 		del self._zmax
 		del self.trans_z
@@ -125,8 +152,8 @@ class SurrogateModel (Model):
 	## Training design variable values
 	@property
 	def X (self):
-		#return None if self.Z is None else self.Z[:,:self.dim_x]
-		return self.Z[:,:self.dim_x]
+		return None if self.Z is None else self.Z[:,:self.dim_x]
+		#return self.Z[:,:self.dim_x]
 	@property
 	def xmin (self):
 		#return None if self.zmin is None else self.zmin[:self.dim_x]
@@ -139,8 +166,8 @@ class SurrogateModel (Model):
 	## Training model parameter values
 	@property
 	def P (self):
-		#return None if self.Z is None else self.Z[:,self.dim_x:]
-		return self.Z[:,self.dim_x:]
+		return None if self.Z is None else self.Z[:,self.dim_x:]
+		#return self.Z[:,self.dim_x:]
 	@property
 	def pmin (self):
 		#return None if self.zmin is None else self.zmin[self.dim_x:]
@@ -153,23 +180,22 @@ class SurrogateModel (Model):
 	## Training targets
 	@property
 	def Y (self):
-		#return None if not hasattr(self,'_Y') else self._Y
-		return self._Y
+		return None if not hasattr(self,'_Y') else self._Y
 	@Y.setter
 	def Y (self, value):
-		#if value is not None:
-		assert value.shape[1] == self.num_outputs
-		self._ymean  = np.mean(value, axis=0)
-		self._ystd   = np.std(value, axis=0)
-		self.trans_y = MeanTransform(self.ymean, self.ystd)
-		#self._Y      = self.transform_y(value)
-		self._Y      = self.trans_y(value)
+		if value is not None:
+			assert value.shape[1] == self.num_outputs
+			self._ymean  = np.mean(value, axis=0)
+			self._ystd   = np.std(value, axis=0)
+			self.trans_y = MeanTransform(self.ymean, self.ystd)
+			#self._Y      = self.transform_y(value)
+			self._Y      = self.trans_y(value)
 	@Y.deleter
 	def Y (self):
-		#self._Y     = None
+		self._Y     = None
 		#self._ymean = None
 		#self._ystd  = None
-		del self._Y    
+		#del self._Y    
 		del self._ymean
 		del self._ystd
 		del self.trans_y
@@ -310,8 +336,9 @@ class SurrogateModel (Model):
 	Prediction
 	"""
 	def predict (self, xnew):
-		#xt   = self.transform_x(xnew)
-		#pt   = self.transform_p(self.pmean)
+		assert self.pmean is not None
+		assert self.Z is not None and self.Y is not None
+		assert self.hyp is not None
 		xt   = self.trans_x(xnew)
 		pt   = self.trans_p(self.pmean)
 		M, S = self._predict(xt, pt)
@@ -363,8 +390,7 @@ class SurrogateModel (Model):
 	"""
 	@property
 	def hyp (self):
-		#return None if not hasattr(self,'_hyp') else self._hyp
-		return self._hyp
+		return None if not hasattr(self,'_hyp') else self._hyp
 	@hyp.setter
 	def hyp (self, value):
 		if value is not None:
@@ -374,8 +400,7 @@ class SurrogateModel (Model):
 			self._hyp = value
 	@hyp.deleter
 	def hyp (self):
-		#self._hyp = None
-		del self._hyp
+		self._hyp = None
 
 		
 	"""
