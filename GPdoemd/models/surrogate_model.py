@@ -317,7 +317,8 @@ class SurrogateModel (Model):
 		M, S = self._predict(xt, pt)
 		#return self.backtransform_prediction(M, S)
 		return self.trans_y.prediction(M, S, back=True)
-
+	def _predict (self, *args):
+		raise NotImplementedError
 
 	"""
 	Derivatives
