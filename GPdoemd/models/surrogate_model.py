@@ -72,7 +72,7 @@ class SurrogateModel (Model):
 	@Z.setter
 	def Z (self, value):
 		if value is not None:
-			assert value.shape[1] == self.dim_x + self.dim_p
+			assert value.shape[1] == self.dim_x + self.dim_p, 'Incorrect shape'
 			self._zmin = np.min(value, axis=0)
 			self._zmax = np.max(value, axis=0)
 			for i in self.binary_variables:
@@ -347,12 +347,6 @@ class SurrogateModel (Model):
 	def Sigma_trans (self):
 		self._Sigma_trans = None
 
-	def compute_param_covar (self, method, Xdata):
-		X_transform      = self.transform_x(Xdata)
-		meas_var_trans   = self.transformed_meas_noise_var
-		self.Sigma_trans = method(self, X_transform, meas_var_trans)
-		self.Sigma       = self.backtransform_p_cov(self.Sigma_trans)
-
 
 	"""
 	Clear model
@@ -369,16 +363,16 @@ class SurrogateModel (Model):
 	"""
 	def _get_save_dict (self):
 		d = super()._get_save_dict()
-		d['hyp'] = self.hyp
-		d['Z']   = self._save_var('Z', self.backtransform_z)
-		d['Y']   = self._save_var('Y', self.backtransform_y)
+		d['hyp']         = self.hyp
+		d['Z']           = self._save_var('Z', self.backtransform_z)
+		d['Y']           = self._save_var('Y', self.backtransform_y)
 		d['Sigma_trans'] = self.Sigma_trans
 		return d
 
 	def _load_save_dict (self, save_dict):
 		super()._load_save_dict(save_dict)
-		self.Z   = save_dict['Z']
-		self.Y   = save_dict['Y']
-		self.hyp = save_dict['hyp']
+		self.Z           = save_dict['Z']
+		self.Y           = save_dict['Y']
+		self.hyp         = save_dict['hyp']
 		self.Sigma_trans = save_dict['Sigma_trans']
 
