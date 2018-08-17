@@ -40,11 +40,13 @@ class NumericalModel (Model):
 		return self._eps
 	@eps.setter 
 	def eps (self, value):
-		if isinstance(value, float):
-			self._eps = value * np.ones(self.dim_p)
+		if isinstance(value, (int,float)):
+			self._eps = value * np.ones(self.dim_p, dtype=float)
 		elif isinstance(value, (list,tuple,np.ndarray)):
 			self._eps = np.asarray(value)
-		assert self._eps.shape == (self.dim_p, )
+		else:
+			raise ValueError('eps has illegal type')
+		assert self._eps.shape == (self.dim_p, ), 'eps incorrect shape'
 
 	"""
 	Derivatives

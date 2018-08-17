@@ -50,7 +50,7 @@ class Model:
 		return self._name
 	@name.setter 
 	def name (self, value):
-		assert isinstance(value, str)
+		assert isinstance(value, str), 'Model name has to be of type string'
 		self._name = value
 
 	## Model function handle
@@ -59,7 +59,7 @@ class Model:
 		return self._call
 	@call.setter 
 	def call (self, value):
-		assert callable(value)
+		assert callable(value), 'Invalid call handle'
 		self._call = value
 
 	## Number of outputs/target dimensions
@@ -68,7 +68,7 @@ class Model:
 		return self._num_outputs
 	@num_outputs.setter 
 	def num_outputs (self, value):
-		assert isinstance(value, int) and value > 0
+		assert isinstance(value, int) and value > 0, 'Invalid no. of outputs'
 		self._num_outputs = value
 
 	## Measurement noise variance
@@ -79,9 +79,13 @@ class Model:
 	def meas_noise_var (self, value):
 		if isinstance(value, (int, float)):
 			value = np.array([value] * self.num_outputs)
-		assert isinstance(value, np.ndarray)
+		assert isinstance(value, np.ndarray), 'Variance has to be numpy array'
 		if value.ndim == 1:
-			assert np.all( value > 0. )
+			assert value.shape == (self.num_outputs,), 'Incorrect shape'
+			assert np.all( value > 0. ), 'Variance must be +ve and >0'
+		else:
+			E = self.num_outputs
+			assert value.shape == (E,E), 'Incorrect shape'
 		self._meas_noise_var = value
 	@property
 	def meas_noise_covar (self):
@@ -96,7 +100,7 @@ class Model:
 		return self._dim_x
 	@dim_x.setter
 	def dim_x (self, value):
-		assert isinstance(value, int) and value > 0
+		assert isinstance(value, int) and value > 0, 'Invalid x dimensionality'
 		self._dim_x = value
 
 	## Number of model parameters
@@ -105,7 +109,7 @@ class Model:
 		return self._dim_p
 	@dim_p.setter
 	def dim_p (self, value):
-		assert isinstance(value, int) and value > 0
+		assert isinstance(value, int) and value > 0, 'Invalid p dimensionality'
 		self._dim_p = value
 
 
@@ -120,7 +124,8 @@ class Model:
 	@pmean.setter
 	def pmean (self, value):
 		if value is not None:
-			assert value.shape == (self.dim_p,)
+			assert isinstance(value, np.ndarray), 'pmean has to be numpy array'
+			assert value.shape == (self.dim_p,),  'pmean has incorrect shape'
 		self._pmean = value
 		if not hasattr(self,'_old_pmean'):
 			self._old_pmean = None
@@ -144,26 +149,22 @@ class Model:
 		if value is None:
 			self._Sigma = None
 		else:
-			assert isinstance(value, np.ndarray)
-			assert value.shape == (self.dim_p, self.dim_p)
+			assert isinstance(value, np.ndarray), 'Sigma has to be numpy array'
+			assert value.shape == (self.dim_p, self.dim_p), 'Incorrect shape'
 			self._Sigma = value.copy()
 	@Sigma.deleter
 	def Sigma (self):
 		self._Sigma = None
 
-	def compute_param_covar (self, method, Xdata):
-		self.Sigma = method(self, Xdata, self.meas_noise_var)
-
 	"""
 	Model prediction
 	"""
 	def predict (self, xnew):
-		assert self.pmean is not None
+		assert self.pmean is not None, 'pmean not set'
 		M = np.array([self.call(x, self.pmean) for x in xnew])
 		assert M.shape == (len(xnew), self.num_outputs)
 		S = np.zeros(M.shape)
 		return M, S
-
 
 	"""
 	Derivatives
@@ -186,6 +187,7 @@ class Model:
 	"""
 	def clear_model (self):
 		del self.pmean
+		del self.Sigma
 
 
 	"""
