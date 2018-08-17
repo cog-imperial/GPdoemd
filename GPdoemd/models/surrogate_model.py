@@ -27,7 +27,7 @@ import warnings
 
 from . import Model
 from ..utils import binary_dimensions
-from ..transform import BoxTranform, MeanTransform
+from ..transform import BoxTransform, MeanTransform
 
 
 class SurrogateModel (Model):
