@@ -101,3 +101,19 @@ class TestMeanTransform:
 		assert_almost_equal(Zt, Zp)
 		Zp = MT.cov( Zp, back=True )
 		assert_almost_equal(Z, Zp)
+
+	def test_trans_prediction (self):
+		n = 15
+		M = np.random.randn(n, D)
+		m = MT(M)
+		# With variance
+		S = np.random.rand(n, D)
+		s = MT.var(S)
+		Mt, St = MT.prediction(m, s, back=True)
+		assert_almost_equal(M, Mt)
+		assert_almost_equal(S, St)
+		# With covariance
+		S = np.random.rand(n, D, D)
+		s = MT.cov(S)
+		_, St = MT.prediction(m, s, back=True)
+		assert_almost_equal(S, St)
