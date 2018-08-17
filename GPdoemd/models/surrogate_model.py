@@ -288,7 +288,7 @@ class SurrogateModel (Model):
 		der  = self._d_mu_d_p(e, xnew)
 		return der * self.ystd[e] / (self.pmax - self.pmin)
 	def _d_mu_d_p (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 	def d2_mu_d_p2 (self, e, X):
 		xnew = self.transform_x(X)
@@ -296,14 +296,14 @@ class SurrogateModel (Model):
 		diff = (self.pmax - self.pmin)
 		return der * self.ystd[e] / (diff[:,None] * diff[None,:])
 	def _d2_mu_d_p2 (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 	def d_s2_d_p (self, e, X):
 		xnew = self.transform_x(X)
 		der  = self._d_s2_d_p(e, xnew)
 		return der * self.ystd[e]**2 / (self.pmax - self.pmin)
 	def _d_s2_d_p (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 	def d2_s2_d_p2 (self, e, X):
 		xnew = self.transform_x(X)
@@ -311,7 +311,7 @@ class SurrogateModel (Model):
 		diff = (self.pmax - self.pmin)
 		return der * self.ystd[e]**2 / (diff[:,None] * diff[None,:])
 	def _d2_s2_d_p2 (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 
 	"""
