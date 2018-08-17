@@ -28,9 +28,6 @@ from GPy.models import GPRegression
 from GPy.kern import Kern
 
 from . import SurrogateModel
-from ..utils import binary_dimensions
-
-from pdb import set_trace as st
 
 
 class VanillaGPModel (SurrogateModel):
@@ -93,20 +90,14 @@ class VanillaGPModel (SurrogateModel):
 
 
 	def gp_surrogate (self, Z=None, Y=None, kern_x=None, kern_p=None):
-		self.set_training_data(Z, Y)	
-		Z = self.Z
-		Y = self.Y
+		self.set_training_data(Z, Y)
+		assert self.Z is not None and self.Y is not None
 
 		self.set_kernels(kern_x, kern_p)
-		kern_x = self.kern_x
-		kern_p = self.kern_p
-		dim_x  = self.dim_x - self.dim_b
-		dim_p  = self.dim_p
-		dim    = dim_x + dim_p
+		assert self.kern_x is not None and self.kern_p is not None
 
-		R, I, J = binary_dimensions(Z, self.binary_variables)
-
-		assert not np.any([ value is None for value in [Z, Y, kern_x, kern_p] ])
+		#R, I, J = binary_dimensions(self.Z, self.binary_variables)
+		R, J = self.binary_dimensions(self.Z)
 
 		gps = []
 		for e in range( self.num_outputs ):
@@ -118,10 +109,14 @@ class VanillaGPModel (SurrogateModel):
 					gps[e].append(None)
 					continue
 
-				kernx = kern_x(dim_x, range(dim_x), 'kernx')
-				kernp = kern_p(dim_p, range(dim_x, dim), 'kernp')
-				Zr    = Z[ np.ix_(Jr,  I ) ]
-				Yr    = Y[ np.ix_(Jr, [e]) ]
+				dim_xb = self.dim_x - self.dim_b
+				dim    = self.dim_x + self.dim_p
+				kernx  = self.kern_x(dim_xb, self.non_binary_variables, 'kernx')
+				kernp  = self.kern_p(self.dim_p, range(self.dim_x, dim), 'kernp')
+				#Zr     = self.Z[ np.ix_(Jr,  I ) ]
+				Zr     = self.Z[ Jr ]
+				Yr     = self.Y[ np.ix_(Jr, [e]) ]
+
 				gp    = GPRegression(Zr, Yr, kernx * kernp)
 				gps[e].append(gp)
 		self.gps = gps
@@ -185,8 +180,9 @@ class VanillaGPModel (SurrogateModel):
 
 	def _predict (self, xnew, p):
 		znew    = np.array([ x.tolist() + p.tolist() for x in xnew ])
-		R, I, J = binary_dimensions(znew, self.binary_variables)
-		znew    = znew[:,I]
+		R, J = self.binary_dimensions(znew)
+		#R, I, J = binary_dimensions(znew, self.binary_variables)
+		#znew    = znew[:,I]
 
 		n = len(znew)
 		M = np.zeros((n, self.num_outputs))
@@ -206,29 +202,33 @@ class VanillaGPModel (SurrogateModel):
 	Derivatives
 	"""
 	def _d_mu_d_p (self, e, X):
-		R, I, J = binary_dimensions(X, self.binary_variables)
+		R, J = self.binary_dimensions(znew)
+		#R, I, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
-		dx      = self.dim_x - self.dim_b
+		dx      = self.dim_x #- self.dim_b
 		dmu     = np.zeros((n,D))
 		for r in R:
 			Jr = (J==r)
 			if not np.any(Jr):
 				continue
-			Z  = self.get_Z(X[ np.ix_(Jr,I) ])
+			#Z  = self.get_Z(X[ np.ix_(Jr,I) ])
+			Z  = self.get_Z(X[ Jr ])
 			gp = self.gps[e][r]
 			dmu[Jr] = gp.predictive_gradients(Z)[0][:,dx:,0]
 		return dmu
 
 	def _d2_mu_d_p2 (self, e, X):
-		R, I, J = binary_dimensions(X, self.binary_variables)
+		R, J = self.binary_dimensions(znew)
+		#R, I, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
-		dx      = self.dim_x - self.dim_b
+		dx      = self.dim_x #- self.dim_b
 		ddmu    = np.zeros((n,D,D))
 		for r in R:
 			Jr  = (J==r)
 			if not np.any(Jr):
 				continue
-			Z   = self.get_Z(X[ np.ix_(Jr,I) ])
+			#Z  = self.get_Z(X[ np.ix_(Jr,I) ])
+			Z  = self.get_Z(X[ Jr ])
 			gp  = self.gps[e][r]
 			gpX = gp._predictive_variable
 			tmp = -gp.kern.kernx.K(Z, gpX) * gp.posterior.woodbury_vector.T
@@ -237,29 +237,33 @@ class VanillaGPModel (SurrogateModel):
 		return ddmu
 
 	def _d_s2_d_p (self, e, X):
-		R, I, J = binary_dimensions(X, self.binary_variables)
+		R, J = self.binary_dimensions(znew)
+		#R, I, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
-		dx      = self.dim_x - self.dim_b
+		dx      = self.dim_x #- self.dim_b
 		ds2     = np.zeros((n,D))
 		for r in R:
 			Jr = (J==r)
 			if not np.any(Jr):
 				continue
-			Z  = self.get_Z(X[ np.ix_(Jr,I) ])
+			#Z  = self.get_Z(X[ np.ix_(Jr,I) ])
+			Z  = self.get_Z(X[ Jr ])
 			gp = self.gps[e][r]
 			ds2[Jr] = gp.predictive_gradients(Z)[1][:,dx:]
 		return ds2
 
 	def _d2_s2_d_p2 (self, e, X):
-		R, I, J = binary_dimensions(X, self.binary_variables)
+		R, J = self.binary_dimensions(znew)
+		#R, I, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
-		dx      = self.dim_x - self.dim_b
+		dx      = self.dim_x #- self.dim_b
 		dds2    = np.zeros((n,D,D))
 		for r in R:
 			Jr  = (J==r)
 			if not np.any(Jr):
 				continue
-			Z   = self.get_Z(X[ np.ix_(Jr,I) ])
+			#Z   = self.get_Z(X[ np.ix_(Jr,I) ])
+			Z   = self.get_Z(X[ Jr ])
 			gp  = self.gps[e][r]
 			gpX = gp._predictive_variable
 			iK  = gp.posterior.woodbury_inv

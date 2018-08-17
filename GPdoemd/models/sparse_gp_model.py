@@ -27,8 +27,6 @@ import numpy as np
 from GPy.models import SparseGPRegression
 
 from . import VanillaGPModel
-from ..utils import binary_dimensions
-
 
 class SparseGPModel (VanillaGPModel):
 	def __init__ (self, model_dict):
@@ -38,20 +36,14 @@ class SparseGPModel (VanillaGPModel):
 	Sparse GP surrogate model
 	"""
 	def gp_surrogate (self, Z=None, Y=None, kern_x=None, kern_p=None, num_inducing=None):
-		self.set_training_data(Z, Y)	
-		Z = self.Z
-		Y = self.Y
+		self.set_training_data(Z, Y)
+		assert self.Z is not None and self.Y is not None
 
 		self.set_kernels(kern_x, kern_p)
-		kern_x = self.kern_x
-		kern_p = self.kern_p
-		dim_x  = self.dim_x - self.dim_b
-		dim_p  = self.dim_p
-		dim    = dim_x + dim_p
+		assert self.kern_x is not None and self.kern_p is not None
 
-		R, I, J = binary_dimensions(Z, self.binary_variables)
-
-		assert not np.any([ value is None for value in [Z, Y, kern_x, kern_p] ])
+		#R, I, J = binary_dimensions(self.Z, self.binary_variables)
+		R, J = self.binary_dimensions(self.Z)
 
 		gps = []
 		for e in range( self.num_outputs ):
@@ -63,17 +55,18 @@ class SparseGPModel (VanillaGPModel):
 					gps[e].append(None)
 					continue
 
-				kernx = kern_x(dim_x, range(dim_x), 'kernx')
-				kernp = kern_p(dim_p, range(dim_x, dim), 'kernp')
-				kern  = kernx * kernp
-
-				Zr    = Z[ np.ix_(Jr,  I ) ]
-				Yr    = Y[ np.ix_(Jr, [e]) ]
+				dim_xb = self.dim_x - self.dim_b
+				dim    = self.dim_x + self.dim_p
+				kernx  = self.kern_x(dim_xb, self.non_binary_variables, 'kernx')
+				kernp  = self.kern_p(self.dim_p, range(self.dim_x, dim), 'kernp')
+				#Zr     = self.Z[ np.ix_(Jr,  I ) ]
+				Zr     = self.Z[ Jr ]
+				Yr     = self.Y[ np.ix_(Jr, [e]) ]
 
 				numi  = num_inducing
 				if numi is None:
 					numi = np.max(( 10, np.ceil(np.sqrt(len(Zr))).astype(int) ))
 
-				gp = SparseGPRegression(Zr, Yr, kern, num_inducing=numi)
+				gp = SparseGPRegression(Zr, Yr, kernx*kernp, num_inducing=numi)
 				gps[e].append(gp)
 		self.gps = gps
