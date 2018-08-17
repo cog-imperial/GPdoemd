@@ -170,16 +170,16 @@ class Model:
 	Derivatives
 	"""
 	def d_mu_d_p (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 	def d2_mu_d_p2 (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 	def d_s2_d_p (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 	def d2_s2_d_p2 (self, e, X):
-		return NotImplementedError
+		raise NotImplementedError
 
 
 	"""
