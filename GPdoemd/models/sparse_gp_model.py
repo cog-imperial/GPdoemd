@@ -27,6 +27,7 @@ import numpy as np
 from GPy.models import SparseGPRegression
 
 from . import VanillaGPModel
+from ..utils import binary_dimensions
 
 class SparseGPModel (VanillaGPModel):
 	def __init__ (self, model_dict):
@@ -42,8 +43,7 @@ class SparseGPModel (VanillaGPModel):
 		self.set_kernels(kern_x, kern_p)
 		assert self.kern_x is not None and self.kern_p is not None
 
-		#R, I, J = binary_dimensions(self.Z, self.binary_variables)
-		R, J = self.binary_dimensions(self.Z)
+		R, J = binary_dimensions(self.Z, self.binary_variables)
 
 		gps = []
 		for e in range( self.num_outputs ):

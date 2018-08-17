@@ -28,6 +28,7 @@ from GPy.models import GPRegression
 from GPy.kern import Kern
 
 from . import SurrogateModel
+from ..utils import binary_dimensions
 
 
 class VanillaGPModel (SurrogateModel):
@@ -96,8 +97,7 @@ class VanillaGPModel (SurrogateModel):
 		self.set_kernels(kern_x, kern_p)
 		assert self.kern_x is not None and self.kern_p is not None
 
-		#R, I, J = binary_dimensions(self.Z, self.binary_variables)
-		R, J = self.binary_dimensions(self.Z)
+		R, J = binary_dimensions(self.Z, self.binary_variables)
 
 		gps = []
 		for e in range( self.num_outputs ):
@@ -179,9 +179,8 @@ class VanillaGPModel (SurrogateModel):
 
 
 	def _predict (self, xnew, p):
-		znew    = np.array([ x.tolist() + p.tolist() for x in xnew ])
-		R, J = self.binary_dimensions(znew)
-		#R, I, J = binary_dimensions(znew, self.binary_variables)
+		znew = np.array([ x.tolist() + p.tolist() for x in xnew ])
+		R, J = binary_dimensions(znew, self.binary_variables)
 		#znew    = znew[:,I]
 
 		n = len(znew)
@@ -202,8 +201,7 @@ class VanillaGPModel (SurrogateModel):
 	Derivatives
 	"""
 	def _d_mu_d_p (self, e, X):
-		R, J = self.binary_dimensions(znew)
-		#R, I, J = binary_dimensions(znew, self.binary_variables)
+		R, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		dmu     = np.zeros((n,D))
@@ -218,8 +216,7 @@ class VanillaGPModel (SurrogateModel):
 		return dmu
 
 	def _d2_mu_d_p2 (self, e, X):
-		R, J = self.binary_dimensions(znew)
-		#R, I, J = binary_dimensions(znew, self.binary_variables)
+		R, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		ddmu    = np.zeros((n,D,D))
@@ -237,8 +234,7 @@ class VanillaGPModel (SurrogateModel):
 		return ddmu
 
 	def _d_s2_d_p (self, e, X):
-		R, J = self.binary_dimensions(znew)
-		#R, I, J = binary_dimensions(znew, self.binary_variables)
+		R, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		ds2     = np.zeros((n,D))
@@ -253,8 +249,7 @@ class VanillaGPModel (SurrogateModel):
 		return ds2
 
 	def _d2_s2_d_p2 (self, e, X):
-		R, J = self.binary_dimensions(znew)
-		#R, I, J = binary_dimensions(znew, self.binary_variables)
+		R, J = binary_dimensions(znew, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		dds2    = np.zeros((n,D,D))

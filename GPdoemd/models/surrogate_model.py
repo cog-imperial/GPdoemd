@@ -70,31 +70,6 @@ class SurrogateModel (Model):
 	def non_binary_variables (self):
 		return [i for i in range(self.dim_x) if not i in self.binary_variables]
 
-	def binary_dimensions (self, Z):
-		"""
-		Outputs
-			Range ( len( binary_variables ) )
-			Row indices for different binary variables
-		"""
-		lb = len( self.binary_variables )
-		if lb == 0:
-			n1, n2 = Z.shape
-			return [0], np.zeros(n1)
-
-		B = np.meshgrid( *( [[-1, 1]] * lb ) )
-		B = np.vstack( map( np.ravel, B) ).T
-
-		Zt = Z[:, self.binary_variables] - 0.5
-		J  = []
-		for z in Zt:
-			for j, b in enumerate(B):
-				if np.all(b * z > 0):
-					J.append(j)
-					break
-		#return range( 2**lb ), np.array(I), np.array(J)
-		return range( 2**lb ), np.array(J)
-	
-
 	## Number of binary variables
 	@property
 	def dim_b (self):
