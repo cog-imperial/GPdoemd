@@ -27,6 +27,7 @@ import warnings
 
 from . import Model
 from ..utils import binary_dimensions
+from ..transform import BoxTranform, MeanTransform
 
 
 class SurrogateModel (Model):
@@ -39,12 +40,16 @@ class SurrogateModel (Model):
 	Properties
 	"""
 	# Measurement noise variance transformed to GP y-space
+	"""
 	@property
 	def transformed_meas_noise_var (self):
 		if self.meas_noise_var.ndim == 1:
-			return self.transform_y_var(self.meas_noise_var)
+			#return self.transform_y_var(self.meas_noise_var)
+			return self.trans_y.var(self.meas_noise_var)
 		else:
-			return self.transform_y_cov(self.meas_noise_var)
+			#return self.transform_y_cov(self.meas_noise_var)
+			return self.trans_y.cov(self.meas_noise_var)
+	"""
 
 	@property
 	def binary_variables (self):
@@ -62,13 +67,19 @@ class SurrogateModel (Model):
 		else:
 			raise ValueError('Binary variable must be list or integer')
 
+	## Number of binary variables
+	@property
+	def dim_b (self):
+		return len( self.binary_variables )
+
 	"""
 	Surrogate model training data
 	"""
 	## Training variable [X, P]
 	@property
 	def Z (self):
-		return None if not hasattr(self,'_Z') else self._Z
+		#return None if not hasattr(self,'_Z') else self._Z
+		return self._Z
 	@Z.setter
 	def Z (self, value):
 		if value is not None:
@@ -78,76 +89,99 @@ class SurrogateModel (Model):
 			for i in self.binary_variables:
 				self._zmin[i] = 0
 				self._zmax[i] = 1
-			self._Z    = self.transform_z(value)
+			self.trans_z = BoxTransform(self.zmin, self.zmax)
+			self.trans_x = BoxTransform(self.xmin, self.xmax)
+			self.trans_p = BoxTransform(self.pmin, self.pmax)
+			#self._Z     = self.transform_z(value)
+			self._Z      = self.trans_z(value)
 	@Z.deleter
 	def Z (self):
-		self._Z    = None
-		self._zmin = None
-		self._zmax = None
+		#self._Z    = None
+		#self._zmin = None
+		#self._zmax = None
+		del self._Z   
+		del self._zmin
+		del self._zmax
+		del self.trans_z
+		del self.trans_x
+		del self.trans_p
 	@property
 	def zmin (self):
-		return None if not hasattr(self,'_zmin') else self._zmin
+		#return None if not hasattr(self,'_zmin') else self._zmin
+		return self._zmin
 	@property
 	def zmax (self):
-		return None if not hasattr(self,'_zmax') else self._zmax
+		#return None if not hasattr(self,'_zmax') else self._zmax
+		return self._zmax
 
 	def get_Z (self, X, P=None):
 		if P is None:
 			assert self.pmean is not None
-			P = np.asarray([self.transform_p(self.pmean)] * len(X))
-			#P = P.reshape((len(X), self.dim_p))
-		assert P.shape == ( len(X), self.dim_p ), str(P.shape)+' != '+str(X.shape)+'  '+str(self.pmean)
+			#P = np.asarray([self.transform_p(self.pmean)] * len(X))
+			P = np.asarray([self.trans_p(self.pmean)] * len(X))
+		assert P.shape == ( len(X), self.dim_p )
 		return np.array([ x.tolist() + p.tolist() for x,p in zip(X,P) ])
 
 	## Training design variable values
 	@property
 	def X (self):
-		return None if self.Z is None else self.Z[:,:self.dim_x]
+		#return None if self.Z is None else self.Z[:,:self.dim_x]
+		return self.Z[:,:self.dim_x]
 	@property
 	def xmin (self):
-		return None if self.zmin is None else self.zmin[:self.dim_x]
+		#return None if self.zmin is None else self.zmin[:self.dim_x]
+		return self.zmin[:self.dim_x]
 	@property
 	def xmax (self):
-		return None if self.zmax is None else self.zmax[:self.dim_x]
+		#return None if self.zmax is None else self.zmax[:self.dim_x]
+		return self.zmax[:self.dim_x]
 
 	## Training model parameter values
 	@property
 	def P (self):
-		return None if self.Z is None else self.Z[:,self.dim_x:]
+		#return None if self.Z is None else self.Z[:,self.dim_x:]
+		return self.Z[:,self.dim_x:]
 	@property
 	def pmin (self):
-		return None if self.zmin is None else self.zmin[self.dim_x:]
+		#return None if self.zmin is None else self.zmin[self.dim_x:]
+		return self.zmin[self.dim_x:]
 	@property
 	def pmax (self):
-		return None if self.zmax is None else self.zmax[self.dim_x:]
+		#return None if self.zmax is None else self.zmax[self.dim_x:]
+		return self.zmax[self.dim_x:]
 
 	## Training targets
 	@property
 	def Y (self):
-		return None if not hasattr(self,'_Y') else self._Y
+		#return None if not hasattr(self,'_Y') else self._Y
+		return self._Y
 	@Y.setter
 	def Y (self, value):
-		if value is not None:
-			assert value.shape[1] == self.num_outputs
-			self._ymean = np.mean(value, axis=0)
-			self._ystd  = np.std(value, axis=0)
-			self._Y     = self.transform_y(value)
+		#if value is not None:
+		assert value.shape[1] == self.num_outputs
+		self._ymean  = np.mean(value, axis=0)
+		self._ystd   = np.std(value, axis=0)
+		self.trans_y = MeanTransform(self.ymean, self.ystd)
+		#self._Y      = self.transform_y(value)
+		self._Y      = self.trans_y(value)
 	@Y.deleter
 	def Y (self):
-		self._Y     = None
-		self._ymean = None
-		self._ystd  = None
+		#self._Y     = None
+		#self._ymean = None
+		#self._ystd  = None
+		del self._Y    
+		del self._ymean
+		del self._ystd
+		del self.trans_y
 	@property
 	def ymean (self):
-		return None if not hasattr(self,'_ymean') else self._ymean
+		#return None if not hasattr(self,'_ymean') else self._ymean
+		return self._ymean
 	@property
 	def ystd (self):
-		return None if not hasattr(self,'_ystd') else self._ystd
+		#return None if not hasattr(self,'_ystd') else self._ystd
+		return self._ystd
 
-	## Number of binary variables
-	@property
-	def dim_b (self):
-		return len( self.binary_variables )
 
 	def set_training_data (self, Z, Y, _Y=None):
 		if _Y is None:
@@ -160,6 +194,7 @@ class SurrogateModel (Model):
 
 	"""
 	Variable, parameter and target transformations
+	"""
 	"""
 	def _none_check (self, arglist):
 		if np.any([a is None for a in arglist]):
@@ -269,29 +304,35 @@ class SurrogateModel (Model):
 		else:
 			S = self.backtransform_y_cov(S)
 		return M, S
+	"""
 
 	"""
 	Prediction
 	"""
 	def predict (self, xnew):
-		xt   = self.transform_x(xnew)
-		pt   = self.transform_p(self.pmean)
+		#xt   = self.transform_x(xnew)
+		#pt   = self.transform_p(self.pmean)
+		xt   = self.trans_x(xnew)
+		pt   = self.trans_p(self.pmean)
 		M, S = self._predict(xt, pt)
-		return self.backtransform_prediction(M, S)
+		#return self.backtransform_prediction(M, S)
+		return self.trans_y.prediction(M, S, back=True)
 
 
 	"""
 	Derivatives
 	"""
 	def d_mu_d_p (self, e, X):
-		xnew = self.transform_x(X)
+		#xnew = self.transform_x(X)
+		xnew = self.trans_x(X)
 		der  = self._d_mu_d_p(e, xnew)
 		return der * self.ystd[e] / (self.pmax - self.pmin)
 	def _d_mu_d_p (self, e, X):
 		raise NotImplementedError
 
 	def d2_mu_d_p2 (self, e, X):
-		xnew = self.transform_x(X)
+		#xnew = self.transform_x(X)
+		xnew = self.trans_x(X)
 		der  = self._d2_mu_d_p2(e, xnew)
 		diff = (self.pmax - self.pmin)
 		return der * self.ystd[e] / (diff[:,None] * diff[None,:])
@@ -299,14 +340,16 @@ class SurrogateModel (Model):
 		raise NotImplementedError
 
 	def d_s2_d_p (self, e, X):
-		xnew = self.transform_x(X)
+		#xnew = self.transform_x(X)
+		xnew = self.trans_x(X)
 		der  = self._d_s2_d_p(e, xnew)
 		return der * self.ystd[e]**2 / (self.pmax - self.pmin)
 	def _d_s2_d_p (self, e, X):
 		raise NotImplementedError
 
 	def d2_s2_d_p2 (self, e, X):
-		xnew = self.transform_x(X)
+		#xnew = self.transform_x(X)
+		xnew = self.trans_x(X)
 		der  = self._d2_s2_d_p2(e, xnew)
 		diff = (self.pmax - self.pmin)
 		return der * self.ystd[e]**2 / (diff[:,None] * diff[None,:])
@@ -319,7 +362,8 @@ class SurrogateModel (Model):
 	"""
 	@property
 	def hyp (self):
-		return None if not hasattr(self,'_hyp') else self._hyp
+		#return None if not hasattr(self,'_hyp') else self._hyp
+		return self._hyp
 	@hyp.setter
 	def hyp (self, value):
 		if value is not None:
@@ -329,7 +373,8 @@ class SurrogateModel (Model):
 			self._hyp = value
 	@hyp.deleter
 	def hyp (self):
-		self._hyp = None
+		#self._hyp = None
+		del self._hyp
 
 		
 	"""
@@ -337,7 +382,8 @@ class SurrogateModel (Model):
 	"""
 	@property
 	def Sigma_trans (self):
-		return None if not hasattr(self,'_Sigma_trans') else self._Sigma_trans
+		#return None if not hasattr(self,'_Sigma_trans') else self._Sigma_trans
+		return self._Sigma_trans
 	@Sigma_trans.setter
 	def Sigma_trans (self, value):
 		assert isinstance(value, np.ndarray)
@@ -345,7 +391,8 @@ class SurrogateModel (Model):
 		self._Sigma_trans = value.copy()
 	@Sigma_trans.deleter
 	def Sigma_trans (self):
-		self._Sigma_trans = None
+		#self._Sigma_trans = None
+		del self._Sigma_trans
 
 
 	"""
