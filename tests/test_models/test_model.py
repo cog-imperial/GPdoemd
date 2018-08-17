@@ -90,7 +90,7 @@ class TestModel:
 		assert np.all(M._old_pmean == pt)
 
 	def test_invalid_pmean (self):
-		for r in [1, pt[:1]]
+		for r in [1, pt[:1]]:
 			with pytest.raises(AssertionError):
 				M.pmean = r
 
@@ -102,7 +102,7 @@ class TestModel:
 		assert M.Sigma is None
 
 	def test_invalid_Sigma (self):
-		for r in [1, np.random.randn(2*E, 2*E)]
+		for r in [1, np.random.randn(2*E, 2*E)]:
 			with pytest.raises(AssertionError):
 				M.Sigma = r 
 
