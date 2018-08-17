@@ -201,7 +201,7 @@ class VanillaGPModel (SurrogateModel):
 	Derivatives
 	"""
 	def _d_mu_d_p (self, e, X):
-		R, J = binary_dimensions(znew, self.binary_variables)
+		R, J    = binary_dimensions(X, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		dmu     = np.zeros((n,D))
@@ -209,14 +209,13 @@ class VanillaGPModel (SurrogateModel):
 			Jr = (J==r)
 			if not np.any(Jr):
 				continue
-			#Z  = self.get_Z(X[ np.ix_(Jr,I) ])
 			Z  = self.get_Z(X[ Jr ])
 			gp = self.gps[e][r]
 			dmu[Jr] = gp.predictive_gradients(Z)[0][:,dx:,0]
 		return dmu
 
 	def _d2_mu_d_p2 (self, e, X):
-		R, J = binary_dimensions(znew, self.binary_variables)
+		R, J    = binary_dimensions(X, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		ddmu    = np.zeros((n,D,D))
@@ -224,7 +223,6 @@ class VanillaGPModel (SurrogateModel):
 			Jr  = (J==r)
 			if not np.any(Jr):
 				continue
-			#Z  = self.get_Z(X[ np.ix_(Jr,I) ])
 			Z  = self.get_Z(X[ Jr ])
 			gp  = self.gps[e][r]
 			gpX = gp._predictive_variable
@@ -234,7 +232,7 @@ class VanillaGPModel (SurrogateModel):
 		return ddmu
 
 	def _d_s2_d_p (self, e, X):
-		R, J = binary_dimensions(znew, self.binary_variables)
+		R, J    = binary_dimensions(X, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		ds2     = np.zeros((n,D))
@@ -242,14 +240,13 @@ class VanillaGPModel (SurrogateModel):
 			Jr = (J==r)
 			if not np.any(Jr):
 				continue
-			#Z  = self.get_Z(X[ np.ix_(Jr,I) ])
 			Z  = self.get_Z(X[ Jr ])
 			gp = self.gps[e][r]
 			ds2[Jr] = gp.predictive_gradients(Z)[1][:,dx:]
 		return ds2
 
 	def _d2_s2_d_p2 (self, e, X):
-		R, J = binary_dimensions(znew, self.binary_variables)
+		R, J    = binary_dimensions(X, self.binary_variables)
 		n, E, D = len(X), self.num_outputs, self.dim_p
 		dx      = self.dim_x #- self.dim_b
 		dds2    = np.zeros((n,D,D))
@@ -257,7 +254,6 @@ class VanillaGPModel (SurrogateModel):
 			Jr  = (J==r)
 			if not np.any(Jr):
 				continue
-			#Z   = self.get_Z(X[ np.ix_(Jr,I) ])
 			Z   = self.get_Z(X[ Jr ])
 			gp  = self.gps[e][r]
 			gpX = gp._predictive_variable
@@ -286,4 +282,4 @@ class VanillaGPModel (SurrogateModel):
 	"""
 	def clear_model (self):
 		del self.gps
-		super(VanillaGPModel,self).clear()
+		super(VanillaGPModel,self).clear_model()
