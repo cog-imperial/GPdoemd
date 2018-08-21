@@ -90,8 +90,9 @@ class VTHR2014odeModel:
 		return dR
 
 	def __call__ (self, x, p, all_t=False):
-		t, s, m = x
-		K, R0   = p[:10], p[10:]
+		t, s, mo = x
+		assert 0 <= mo < 5
+		K, R0    = p[:10], p[10:]
 		# Stimulus
 		#K    = p.copy() # p[:10]
 		K[0] = K[0] if s <= 0.5 else 2*K[0]
@@ -106,8 +107,8 @@ class VTHR2014odeModel:
 		# Return measurable output m at time t
 		_, Ap, _, Bp, _, Cp, BpCp, _, Dp = range( 9 )
 		m = [Ap, Bp, Cp, BpCp, Dp]
-		m = m if all_t else m[ int( np.floor(m) ) ]
-		return [Y[::10,m], T[::10]] if all_t else Y[-1, m]
+		m = m if all_t else m[ int( np.floor(mo) ) ]
+		return [Y[::10,m], T[::10]] if all_t else Y[[-1], m]
 
 
 """

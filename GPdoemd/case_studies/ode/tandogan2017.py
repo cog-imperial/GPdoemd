@@ -73,13 +73,12 @@ class Tandogan2017Model:
 		return [c_A, c_B, c_E]
 
 	def get_coeff (self, x, p=None):
-		T = x[2]
+		T = x[2] # Temperature
 		if p is None:
 			p = self.p
 		i    = int(self.num_p/2)
 		A, E = p[:i], p[i:]
-		
-		K = np.exp( A - E / T ) # Arrhenius equation
+		K    = np.exp( A - E / T ) # Arrhenius equation
 		return K
 
 	def ODE (self, R, t, K):
@@ -89,7 +88,7 @@ class Tandogan2017Model:
 		# Initial state
 		R0 = self.R_init( x )
 		# Time points
-		T  = self.T( None if all_t else t )
+		T  = self.T( None if all_t else x[3] )
 		# Rate coefficients
 		K  = self.get_coeff(x, p)
 		# Solve ODE system
