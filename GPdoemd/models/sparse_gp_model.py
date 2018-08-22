@@ -26,10 +26,10 @@ import numpy as np
 
 from GPy.models import SparseGPRegression
 
-from . import VanillaGPModel
+from . import GPModel
 from ..utils import binary_dimensions
 
-class SparseGPModel (VanillaGPModel):
+class SparseGPModel (GPModel):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)
 
