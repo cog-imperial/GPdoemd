@@ -1,6 +1,7 @@
 # GPdoemd
 [![Build Status](https://travis-ci.org/cog-imperial/GPdoemd.svg?branch=dev)](https://travis-ci.org/cog-imperial/GPdoemd/branches) [![codecov](https://codecov.io/gh/cog-imperial/GPdoemd/branch/dev/graph/badge.svg)](https://codecov.io/gh/cog-imperial/GPdoemd/branch/dev) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+Python package based on the following paper presented at ICML 2018<br/>
 [**Design of experiments for model discrimination using Gaussian process surrogate models.**](http://proceedings.mlr.press/v80/olofsson18a.html)
 
 ## Installation
@@ -31,9 +32,7 @@ To install GPdoemd, first install all required packages. They are listed above a
 ```
 pip install git+https://github.com/cog-imperial/GPdoemd
 ```
-This should also take care of installing the required packages. 
-
-It is also possible to clone into the GPdoemd git repository and install it using setup.py, but this is not recommended for most users.
+It is also possible to clone into/download the GPdoemd git repository and install it using setup.py, but this is not recommended for most users.
 
 ##### Uninstalling GPdoemd
 The GPdoemd package can be uninstalled by running
@@ -41,8 +40,6 @@ The GPdoemd package can be uninstalled by running
 pip uninstall GPdoemd
 ```
 Alternatively, the folder containing the virtual environment can be deleted. This will remove the entire virtual environment in one go. There is no need to uninstall all packages in the virtual environment prior to deleting it.
-
-If setup.py has been used to install GPdoemd, then good luck!
 
 ## Authors
 * **[Simon Olofsson](https://www.doc.ic.ac.uk/~so2015/)** ([scwolof](https://github.com/scwolof)) - Imperial College London
