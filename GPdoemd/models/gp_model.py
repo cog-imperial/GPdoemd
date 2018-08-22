@@ -31,7 +31,7 @@ from . import SurrogateModel
 from ..utils import binary_dimensions
 
 
-class VanillaGPModel (SurrogateModel):
+class GPModel (SurrogateModel):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)
 		# Optional parameters
@@ -282,4 +282,4 @@ class VanillaGPModel (SurrogateModel):
 	"""
 	def clear_model (self):
 		del self.gps
-		super(VanillaGPModel,self).clear_model()
+		super(GPModel,self).clear_model()

@@ -8,7 +8,7 @@ import numpy as np
 from GPy.models import GPRegression
 from GPy.kern import RBF
 
-from GPdoemd.models import VanillaGPModel
+from GPdoemd.models import GPModel
 
 """
 SET UP MODEL ONCE
@@ -30,7 +30,7 @@ d = {
 	'dim_p':       len(p_bounds),
 	'num_outputs': 2
 }
-M = VanillaGPModel(d)
+M = GPModel(d)
 
 
 X  = np.array([[10., 5.], [10., 8.], [20., 5.], [20., 8.]])
@@ -53,13 +53,13 @@ class Kern (RBF):
 M.pmean = np.random.uniform(*p_bounds.T)
 M.gp_surrogate(Z, Y, Kern, Kern)
 
-class TestVanillaGPModel:
+class TestGPModel:
 
 	"""
 	Test GP surrogate
 	"""
 	def test_gp_surrogate (self):
-		Mt = VanillaGPModel(d)
+		Mt = GPModel(d)
 		Mt.set_training_data(Z, Y)
 		# Initialised as None
 		assert Mt.gps is None
@@ -92,7 +92,7 @@ class TestVanillaGPModel:
 		assert S.shape == (len(Xs),2)
 
 	def test_gp_optimize (self):
-		Mt = VanillaGPModel(d)
+		Mt = GPModel(d)
 		Mt.set_training_data(Z, Y)
 		# Initialised as None
 		assert Mt.gps is None
@@ -130,7 +130,7 @@ class TestVanillaGPModel:
 			assert der.shape == (len(X), M.dim_p, M.dim_p)
 
 	def test_clear_model (self):
-		Mt     = VanillaGPModel(d)
+		Mt     = GPModel(d)
 		Mt.gps = [None] * Mt.num_outputs
 		assert Mt.gps is not None
 		Mt.clear_model() 
