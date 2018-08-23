@@ -72,7 +72,7 @@ def chi2 (Y, M, S, D):
 	"""
 	N, E = Y.shape
 	maha = _maha_sum(Y, M, S)
-	dof  = N*E - D
+	dof  = N*E - np.asarray(D)
 	if np.any(dof <= 0):
 		raise RuntimeWarning('Degrees of freedom not greater than zero.')
 	return 1. - scipy_chi2.cdf(maha, dof)
@@ -118,7 +118,7 @@ def aicw (Y, M, S, D):
 		L = np.sum([ mv.logpdf(y,m[i],s[i]) for y,m,s in zip(Y,M,S) ])
 		logL.append( L )
 	# Akaike information criterion
-	aic = 2 * np.array(logL) - 2 * D
+	aic = 2 * np.array(logL) - 2 * np.asarray(D)
 	# Akaike weights 
 	aws = []
 	for a1 in aic:
