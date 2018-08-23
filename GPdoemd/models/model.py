@@ -136,6 +136,8 @@ class Model:
 		self.pmean      = None
 
 	def param_estim (self, Xdata, Ydata, method, p_bounds=None):
+		if (p_bounds is None) and (self.p_bounds is not None):
+			p_bounds = np.asarray(self.p_bounds)
 		self.pmean = method(self, Xdata, Ydata, p_bounds)
 		
 	"""
