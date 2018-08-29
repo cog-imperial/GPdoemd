@@ -1,11 +1,21 @@
 # GPdoemd
 [![Build Status](https://travis-ci.org/cog-imperial/GPdoemd.svg?branch=dev)](https://travis-ci.org/cog-imperial/GPdoemd/branches) [![codecov](https://codecov.io/gh/cog-imperial/GPdoemd/branch/dev/graph/badge.svg)](https://codecov.io/gh/cog-imperial/GPdoemd/branch/dev) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Python package based on the following paper presented at ICML 2018<br/>
+Python package based on the following paper presented at ICML 2018  
 [**Design of experiments for model discrimination using Gaussian process surrogate models.**](http://proceedings.mlr.press/v80/olofsson18a.html)
+```
+@inproceedings{Olofsson2018a,
+  author    = {Simon Olofsson and Marc Peter Deisenroth and Ruth Misener},
+  title     = {Design of experiments for model discrimination hybridising analytical and data-driven approaches},
+  booktitle = {ICML '18: Proceedings of the International Conference on Machine Learning},
+  address   = {Stockholm, Sweden},
+  year      = {2018},
+}
+```
 
 ## Installation
-The GPdoemd package has been tested and validated on OSX and Ubuntu. No guarantees are provided that GPdoemd works on Windows-based systems.
+The GPdoemd package has been tested and validated on OSX and Ubuntu.  
+No guarantees are provided that GPdoemd works on Windows-based systems.
 
 ##### Requirements
 Python 3.4+
@@ -14,11 +24,13 @@ Python 3.4+
 * [GPy](https://github.com/SheffieldML/GPy)
 
 ##### Creating a virtual environment
-We recommend installing GPdoemd in a virtual environment. To set up a new virtual environment called myenv (example name), run the command
+We recommend installing GPdoemd in a virtual environment.  
+To set up a new virtual environment called myenv (example name), run the command
 ```
 python3 -m venv myenv
 ```
-in the folder where you want to store the virtual environment. After the virtual environment has been created, activate it as follows
+in the folder where you want to store the virtual environment.  
+After the virtual environment has been created, activate it as follows
 ```
 source myenv/bin/activate
 ```
@@ -28,7 +40,8 @@ pip install --upgrade pip
 ```
 
 ##### Installing GPdoemd
-To install GPdoemd, first install all required packages. They are listed above and in the file requirements.txt. Then run the following
+First install all required packages. They are listed above and in the file [requirements.txt](https://github.com/cog-imperial/GPdoemd/blob/master/requirements.txt).  
+To install GPdoemd, run the following in the virtual environment
 ```
 pip install git+https://github.com/cog-imperial/GPdoemd
 ```
@@ -39,7 +52,7 @@ The GPdoemd package can be uninstalled by running
 ```
 pip uninstall GPdoemd
 ```
-Alternatively, the folder containing the virtual environment can be deleted. This will remove the entire virtual environment in one go. There is no need to uninstall all packages in the virtual environment prior to deleting it.
+Alternatively, the folder containing the virtual environment can be deleted.
 
 ## Authors
 * **[Simon Olofsson](https://www.doc.ic.ac.uk/~so2015/)** ([scwolof](https://github.com/scwolof)) - Imperial College London
