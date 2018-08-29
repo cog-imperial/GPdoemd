@@ -35,7 +35,7 @@ class GPModel (SurrogateModel):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)
 		# Optional parameters
-		self.gp_noise_var     = model_dict.get('gp_noise_var', 1e-6)
+		self.gp_noise_var = model_dict.get('gp_noise_var', 1e-6)
 
 
 	"""
