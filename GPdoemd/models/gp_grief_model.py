@@ -33,8 +33,6 @@ from gp_grief.tensors import expand_SKC
 from . import SurrogateModel
 from ..utils import binary_dimensions
 
-from pdb import set_trace as st
-
 
 class GPGriefModel (SurrogateModel):
 	def __init__ (self, model_dict):
@@ -56,7 +54,6 @@ class GPGriefModel (SurrogateModel):
 			if not isinstance(value, list):
 				value = [value, ] * (self.dim_x + self.dim_p - self.dim_b) 
 			for v in value:
-				#st()
 				assert issubclass(v, Kern)
 			self._kern_list = value
 
