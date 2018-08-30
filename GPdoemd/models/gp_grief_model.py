@@ -40,7 +40,6 @@ class GPGriefModel (SurrogateModel):
 		# Optional parameters
 		self.gp_noise_var = model_dict.get('gp_noise_var', 1e-6)
 
-
 	"""
 	Surrogate model kernels
 	"""
