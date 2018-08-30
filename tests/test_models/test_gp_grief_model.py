@@ -133,6 +133,3 @@ class TestGPGriefModel:
 		assert Mt.gps is not None
 		Mt.clear_model() 
 		assert Mt.gps is None 
-
-T = TestGPGriefModel()
-T.test_gp_grief_optimize()
