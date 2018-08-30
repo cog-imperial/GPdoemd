@@ -140,10 +140,10 @@ class GPModel (SurrogateModel):
 				gp.update_model(True)
 
 
-	def gp_optimize (self, index=None, max_lengthscale=10):
-		self.gp_optimise(index=index, max_lengthscale=max_lengthscale)
+	def gp_optimize (self, index=None, max_lengthscale=10, **kwargs):
+		self.gp_optimise(index=index, max_lengthscale=max_lengthscale, **kwargs)
 
-	def gp_optimise (self, index=None, max_lengthscale=10):
+	def gp_optimise (self, index=None, max_lengthscale=10, **kwargs):
 		if index is None:
 			index = range( self.num_outputs )
 		elif isinstance(index, int):
@@ -165,7 +165,7 @@ class GPModel (SurrogateModel):
 					gp.kern.kernp.lengthscale[[j]].constrain_bounded(
 						lower=0., upper=max_lengthscale, warning=False )
 				# Optimise
-				gp.optimize()
+				gp.optimize(**kwargs)
 
 		hyp = []
 		for e,gps in enumerate(self.gps):
