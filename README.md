@@ -23,6 +23,9 @@ Python 3.4+
 * scipy >= 0.17
 * [GPy](https://github.com/SheffieldML/GPy)
 
+##### Optional
+* gp_grief ([forked repository](https://github.com/scwolof/gp_grief)): for using GP-GRIEF models
+
 ##### Creating a virtual environment
 We recommend installing GPdoemd in a virtual environment.  
 To set up a new virtual environment called myenv (example name), run the command
@@ -40,7 +43,12 @@ pip install --upgrade pip
 ```
 
 ##### Installing GPdoemd
-First install all required packages. They are listed above and in the file [requirements.txt](https://github.com/cog-imperial/GPdoemd/blob/master/requirements.txt).  
+First install all required packages in the virtual environment.  
+The required packages are listed above and in the file [requirements.txt](https://github.com/cog-imperial/GPdoemd/blob/master/requirements.txt).  
+```
+pip install numpy scipy six paramz
+pip install GPy
+```
 To install GPdoemd, run the following in the virtual environment
 ```
 pip install git+https://github.com/cog-imperial/GPdoemd
