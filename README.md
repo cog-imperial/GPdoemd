@@ -13,6 +13,16 @@ Python package based on the following paper presented at ICML 2018
 }
 ```
 
+## Background
+Here we provide a brief introduction to design of experiments for model discrimination, and the method used in the GPdoemd package. For more information, we refer to the paper referenced above.
+
+##### Design of experiments for model discrimination
+We are interested in some system $$g$$ (e.g. the human body, a bioreactor, or a chemical reaction), from which we can generate data constisting of noisy observations $$\mathbf y = g(\mathbf x)$$ given experimental designs $$\mathbf x$$. To predict the bahviour of the system, the engineers and researchers come up with several competing models $$f_i$$, $$i=1,\dots,M$$. The models produce predictions $$f_i(\mathbf x, \mathbf \theta_i)$$ given some model parameters $$\mathbf \theta_i$$. In a classical setting, these model parameters are tuned to make the model predictions fit the observed data.
+
+If we are in a setting where we have multiple rival models and insufficient data to discriminate between them (i.e. to discard inaccurate models), we need to design additional experiments $$\mathbf x$$ to collect more data. The goal is to find the experimental design $$\mathbf x^\ast$$ that yields the expected maximally informative observations for discriminating between the models. Simply put, we want to find the experiment for which the model predictions differ the most.
+
+There are existing methods to try to solve the problem of design of experiments for model discrimination. Roughly, these can be dividied into analytic methods (computationally cheap, but limited to certain models) and data-driven methods (Monte Carlo-based, flexible but often computationally expensive). In the paper references above, and in this software package, the idea is to use an approach that hybridises analytic and data-driven methods, using analytic surrogate models learnt from sampled data.
+
 ## Installation
 The GPdoemd package has been tested and validated on OSX and Ubuntu.  
 No guarantees are provided that GPdoemd works on Windows-based systems.
