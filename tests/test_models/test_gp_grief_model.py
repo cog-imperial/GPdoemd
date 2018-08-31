@@ -108,7 +108,7 @@ class TestGPGriefModel:
 
 		# GP noise variance
 		assert Mt.hyp is None
-		Mt.gp_optimize(max_iters=10)
+		Mt.gp_optimize(max_iters=4)
 		assert Mt.hyp is not None
 
 	def test_d_mu_d_p (self):
@@ -132,4 +132,5 @@ class TestGPGriefModel:
 		Mt.gps = [None] * Mt.num_outputs
 		assert Mt.gps is not None
 		Mt.clear_model() 
-		assert Mt.gps is None 
+		assert Mt.gps is None
+
