@@ -17,11 +17,11 @@ Python package based on the following paper presented at ICML 2018
 Here we provide a brief introduction to design of experiments for model discrimination, and the method used in the GPdoemd package. For more information, we refer to the paper referenced above.
 
 ##### Design of experiments for model discrimination
-We are interested in some system _g_ (e.g. the human body, a bioreactor, or a chemical reaction), from which we can generate data constisting of noisy observations **y**=_g_(**x**) given experimental designs **x**. To predict the bahviour of the system, the engineers and researchers come up with several competing models _f_<sub>i</sub>, i=1,...,M. The models produce predictions _f_<sub>i</sub>(**x**, **p**<sub>i</sub>) given some model parameters **p**<sub>i</sub>. In a classical setting, these model parameters are tuned to make the model predictions fit the observed data.
+We are interested in some system _g_ (e.g. the human body, a bioreactor, or a chemical reaction), from which we can generate data _D_ constisting of noisy observations **y**=_g_(**x**) given experimental designs **x**. To predict the bahviour of the system, the engineers and researchers come up with several competing models _f_<sub>i</sub>, i=1,...,M. The models produce predictions _f_<sub>i</sub>(**x**, **p**<sub>i</sub>) given some model parameters **p**<sub>i</sub>. In a classical setting, these model parameters are tuned to make the model predictions fit the observed data.
 
-If we are in a setting where we have multiple rival models and insufficient data to discriminate between them (i.e. to discard inaccurate models), we need to design additional experiments **x** to collect more data. The goal is to find the experimental design $$\mathbf x^\ast$$ that yields the expected maximally informative observations for discriminating between the models. Simply put, we want to find the experiment for which the model predictions differ the most.
+If we are in a setting where we have multiple rival models and insufficient data to discriminate between them (i.e. to discard inaccurate models), we need to design additional experiments **x** to collect more data. The goal is to find the experimental design **x**\* that yields the expected maximally informative observations for discriminating between the models. Simply put, we want to find the experiment for which the model predictions differ the most. However, because the model parameters are estimated using noisy data, there is uncertainty in the model parameters that needs to be accounted for. To this end, we wish to compute the marginal predictive distributions _p_(_f_<sub>i</sub>(**x**)|_D_) where the model parameters **p**<sub>i</sub> have been marginalised out. Computing the marginal predictive distributions is typically intractable, so we rely on approximations.
 
-There are existing methods to try to solve the problem of design of experiments for model discrimination. Roughly, these can be dividied into analytic methods (computationally cheap, but limited to certain models) and data-driven methods (Monte Carlo-based, flexible but often computationally expensive). In the paper references above, and in this software package, the idea is to use an approach that hybridises analytic and data-driven methods, using analytic surrogate models learnt from sampled data.
+There are existing methods to approximate the marginal predictive distributions. Roughly, these can be dividied into analytic methods (computationally cheap, but limited to certain models) and data-driven methods (Monte Carlo-based, flexible but often computationally expensive). In the paper references above, and in this software package, the idea is to use an approach that hybridises analytic and data-driven methods, using analytic surrogate models learnt from sampled data. This way we can extend the computationally cheap analytic method to a wider range of models.
 
 ## Installation
 The GPdoemd package has been tested and validated on OSX and Ubuntu.  
@@ -34,7 +34,7 @@ Python 3.4+
 * [GPy](https://github.com/SheffieldML/GPy)
 
 ##### Optional
-* gp_grief ([forked repository](https://github.com/scwolof/gp_grief)): for using GP-GRIEF models
+* gp_grief ([forked repository](https://github.com/scwolof/gp_grief)): GP-GRIEF surrogate models
 
 ##### Creating a virtual environment
 We recommend installing GPdoemd in a virtual environment.  
