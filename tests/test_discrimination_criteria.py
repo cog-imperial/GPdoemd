@@ -2,9 +2,9 @@
 import pytest
 import numpy as np 
 
-from GPdoemd.discrimination_criteria import chi2, aicw
-from GPdoemd.discrimination_criteria import gaussian_likelihood as gl
-from GPdoemd.discrimination_criteria import gaussian_likelihood_update as glu
+from GPdoemd.discrimination_criteria import chi2, akaike
+from GPdoemd.discrimination_criteria import gaussian_posterior as gl
+from GPdoemd.discrimination_criteria import gaussian_posterior_update as glu
 
 
 """
@@ -63,13 +63,13 @@ class TestDiscriminationCriteria:
 		for p in P[1:]:
 			assert 0. <= p < 0.001
 
-	def test_aicw(self):
+	def test_akaike(self):
 		M = 3
 		D = np.array([2]*M)
 
 		# All p(M_i) ~= 1/M
 		Y,mu,s2 = _get_equals(M=M)
-		P = aicw(Y,mu,s2,D)
+		P = akaike(Y,mu,s2,D)
 		assert P.shape == (M,)
 		assert 0.999 < np.sum(P) < 1.001
 		for p in P:
@@ -77,7 +77,7 @@ class TestDiscriminationCriteria:
 			
 		# One p(M_i) ~= 1
 		Y,mu,s2 = _get_has_winner(M=M)
-		P = aicw(Y,mu,s2,D)
+		P = akaike(Y,mu,s2,D)
 		assert P.shape == (M,)
 		assert 0.999 < np.sum(P) < 1.001
 		assert P[0] > 0.99
