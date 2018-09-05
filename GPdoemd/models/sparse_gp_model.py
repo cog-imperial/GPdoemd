@@ -32,11 +32,12 @@ from ..utils import binary_dimensions
 class SparseGPModel (GPModel):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)
+		self.max_num_inducing = model_dict.get('max_num_inducing', 500)
 
 	"""
 	Sparse GP surrogate model
 	"""
-	def gp_surrogate (self, Z=None, Y=None, kern_x=None, kern_p=None, num_inducing=None):
+	def gp_surrogate (self,Z=None,Y=None,kern_x=None,kern_p=None,num_inducing=None):
 		self.set_training_data(Z, Y)
 		assert self.Z is not None and self.Y is not None
 
@@ -63,10 +64,8 @@ class SparseGPModel (GPModel):
 				Zr     = self.Z[ Jr ]
 				Yr     = self.Y[ np.ix_(Jr, [e]) ]
 
-				numi  = num_inducing
-				if numi is None:
-					numi = np.max(( 10, np.ceil(np.sqrt(len(Zr))).astype(int) ))
-
+				numi  = self.max_num_inducing if num_inducing is None \
+						else num_inducing
 				gp = SparseGPRegression(Zr, Yr, kernx*kernp, num_inducing=numi)
 				gps[e].append(gp)
 		self.gps = gps
