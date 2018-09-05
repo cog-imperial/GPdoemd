@@ -9,7 +9,7 @@ from GPdoemd.param_estim import diff_evol
 from GPdoemd.param_covar import laplace_approximation
 from GPdoemd.design_criteria import HR, BH, BF, AW, JR
 from GPdoemd.case_studies.analytic import mixing
-from GPdoemd.discrimination_criteria import aicw
+from GPdoemd.discrimination_criteria import akaike
 
 
 
@@ -262,7 +262,7 @@ for _ in range( max_no_experiments ):
         mu[:,i], s2[:,i] = taylor_first_order( M, X )
 
     # Compute normalised Akaike weights
-    pis = aicw(Y, mu, s2, D)
+    pis = akaike(Y, mu, s2, D)
     print( " - Normalised Akaike weights" )
     for M, p in zip(Ms, pis):
         print( "%s: %.5f" % (M.name, p) )
