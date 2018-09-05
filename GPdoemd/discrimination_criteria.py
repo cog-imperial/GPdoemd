@@ -29,11 +29,11 @@ from scipy.stats import chi2 as scipy_chi2
 """
 Gaussian likelihood
 """
-def gaussian_likelihood (Y, M, S):
+def gaussian_posterior (Y, M, S):
 	"""
-	y     [ N x E ]
-	M     [ N x M x E ]
-	S     [ N x M x E x E ]
+	y     [ n x E ]
+	M     [ n x N x E ]
+	S     [ n x N x E x E ]
 	"""
 	logpis = []
 	for i in range( M.shape[1] ):
@@ -50,11 +50,11 @@ def gaussian_likelihood (Y, M, S):
 """
 Update Gaussian likelihood
 """
-def gaussian_likelihood_update (y, M, S, prior):
+def gaussian_posterior_update (y, M, S, prior):
 	"""
 	y     [ E ]
-	M     [ M x E ]
-	S     [ M x E x E ]
+	M     [ N x E ]
+	S     [ N x E x E ]
 	"""
 	p   = np.array([ mv.pdf(y, mu, s2) for mu, s2 in zip(M, S) ])
 	pup = p * prior
@@ -66,51 +66,46 @@ Chi-squared adequacy test
 """
 def chi2 (Y, M, S, D):
 	"""
-	y     [ N x E ]
-	M     [ N x M x E ]
-	S     [ E ], [ E x E] or [ N x M x E x E ]
+	y     [ n x E ]
+	M     [ n x N x E ]
+	S     [ E ], [ E x E] or [ n x N x E x E ]
+	D     [ N ]
 	"""
-	N, E = Y.shape
-	maha = _maha_sum(Y, M, S)
-	dof  = N*E - np.asarray(D)
+	n, N, E = M.shape
+	# Summed squared Mahalanobis distance
+	maha = np.zeros(N)
+	if S.ndim == 1:
+		for i in range(N):
+			d = M[:,i]-Y
+			maha[i] += np.sum(d**2/S)
+	elif S.ndim == 2:
+		iS = np.linalg.inv(S)
+		for i in range(N):
+			for j in range(n):
+				d = M[j,i]-Y[j]
+				maha[i] += np.sum(d * np.matmul(d,iS))
+	else:
+		iS = np.linalg.inv(S)
+		for i in range(N):
+			for j in range(n):
+				d = M[j,i]-Y[j]
+				maha[i] += np.sum(d * np.matmul(d,iS[j,i]))
+
+	dof  = n*E - np.asarray(D)
 	if np.any(dof <= 0):
 		raise RuntimeWarning('Degrees of freedom not greater than zero.')
 	return 1. - scipy_chi2.cdf(maha, dof)
-
-# Summed squared Mahalanobis distance
-def _maha_sum (Y, F, S):
-	n, M = F.shape[:2]
-	ms = np.zeros(M)
-	if S.ndim == 1:
-		for i in range(M):
-			d = F[:,i]-Y
-			ms[i] += np.sum(d**2/S)
-		return ms
-	elif S.ndim == 2:
-		iS = np.linalg.inv(S)
-		for i in range(M):
-			for j in range(n):
-				d = F[j,i]-Y[j]
-				ms[i] += np.sum(d * np.matmul(d,iS))
-		return ms
-	else:
-		iS = np.linalg.inv(S)
-		for i in range(M):
-			for j in range(n):
-				d = F[j,i]-Y[j]
-				ms[i] += np.sum(d * np.matmul(d,iS[j,i]))
-		return ms
 
 
 """
 Akaike information criterion weights
 """
-def aicw (Y, M, S, D):
+def akaike (Y, M, S, D):
 	"""
-	y     [ N x E ]
-	M     [ N x M x E ]
-	S     [ N x M x E x E ]
-	D     [ M ]
+	y     [ n x E ]
+	M     [ n x N x E ]
+	S     [ n x N x E x E ]
+	D     [ N ]
 	"""
 	# Log Gaussian likelihood
 	logL = []
