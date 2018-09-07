@@ -24,8 +24,8 @@ If we are in a setting where we have multiple rival models and insufficient data
 There are existing methods to approximate the marginal predictive distributions. Roughly, these can be dividied into analytic methods (computationally cheap, but limited to certain models) and data-driven methods (Monte Carlo-based, flexible but often computationally expensive). In the paper references above, and in this software package, the idea is to use an approach that hybridises analytic and data-driven methods, using analytic surrogate models learnt from sampled data. This way we can extend the computationally cheap analytic method to a wider range of models.
 
 ## Installation
-The GPdoemd package has been tested and validated on OSX and Ubuntu.  
-No guarantees are provided that GPdoemd works on Windows-based systems.
+The following instructions work for OSX and Ubuntu systems.  
+For installation on a Windows system, please refer to the file [windows_install.md](https://github.com/cog-imperial/GPdoemd/blob/dev/windows_install.md). 
 
 ##### Requirements
 Python 3.4+
@@ -56,7 +56,7 @@ pip install --upgrade pip
 First install all required packages in the virtual environment.  
 The required packages are listed above and in the file [requirements.txt](https://github.com/cog-imperial/GPdoemd/blob/master/requirements.txt).  
 ```
-pip install numpy scipy six paramz
+pip install numpy scipy six paramz matplotlib
 pip install GPy
 ```
 To install GPdoemd, run the following in the virtual environment
