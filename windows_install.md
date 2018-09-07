@@ -41,20 +41,20 @@ pip install GPy
 If you are lucky, this works. In our experience, the last command will fail - GPy will need to be built from source.
 Download the files from the [GPy GitHub repository](https://github.com/SheffieldML/GPy). Enter the downloaded GPy folder and run
 ```
-python setup.py
+python setup.py develop
 ```
 If the setup is successful, skip to the installation of GPdoemd.
 If the previous command generates cython-related errors, try to comment out the lines in setup.py related to ext_mods, and add
 ```
 ext_mods = []
 ```
-After this, try running `python setup.py` again.
+After this, try running `python setup.py develop` again.
 
 To install GPdoemd, run the following in the virtual environment
 ```
 pip install git+https://github.com/cog-imperial/GPdoemd
 ```
-Alternatively, if you do not have git installed, download the files from the GitHub repository and install using `python setup.py`.
+Alternatively, if you do not have git installed, download the files from the GitHub repository and install using `python setup.py develop`.
 
 ##### Uninstalling GPdoemd
 The GPdoemd package can be uninstalled by running
