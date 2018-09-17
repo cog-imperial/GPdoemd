@@ -14,11 +14,11 @@ Python 3.4+
 
 ##### Creating a virtual environment
 We recommend installing GPdoemd in a virtual environment.  
-To set up a new virtual environment called myenv (example name), run the command
+Open the command prompt and navigate to your preferred installation folder.  
+To set up a new virtual environment called myenv (example name), run the following
 ```
 python -m venv myenv
 ```
-in the folder where you want to store the virtual environment.  
 After the virtual environment has been created, activate it as follows
 ```
 myenv\Scripts\activate
