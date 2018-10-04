@@ -13,3 +13,4 @@ try:
 	from .gp_grief_model import GPGriefModel
 except:
 	print('Could not import GPGriefModel - ensure gp_grief package is installed.')
+	print('NOTE: install forked version from https://github.com/scwolof/gp_grief')
