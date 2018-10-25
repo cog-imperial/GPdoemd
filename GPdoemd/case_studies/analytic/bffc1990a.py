@@ -95,8 +95,8 @@ class M1 (BFFC1990AModel):
 
 	@property
 	def p_bounds (self):
-		return np.array([[ 0,  10.], 
-		                 [ 0, 100.]])
+		return np.array([[ 0.1,  10.], 
+		                 [ 0.1, 100.]])
 
 	def __call__ (self, x, p, grad=False):
 		# Constants
@@ -124,8 +124,8 @@ class M2 (BFFC1990AModel):
 
 	@property
 	def p_bounds (self):
-		return np.array([[ 0,  10.], 
-		                 [ 0, 100.]])
+		return np.array([[ 0.1,  10.], 
+		                 [ 0.1, 100.]])
 
 	def __call__ (self, x, p, grad=False):
 		# Constants
@@ -153,10 +153,10 @@ class M3 (BFFC1990AModel):
 
 	@property
 	def p_bounds (self):
-		return np.array([[ 0,  10.], 
-		                 [ 0, 100.],
-		                 [ 0,  10.], 
-		                 [ 0, 100.]])
+		return np.array([[ 0.1,  10.], 
+		                 [ 0.1, 100.],
+		                 [ 0.1,  10.], 
+		                 [ 0.1, 100.]])
 
 	def __call__ (self, x, p, grad=False):
 		# Constants
@@ -189,12 +189,12 @@ class M4 (BFFC1990AModel):
 
 	@property
 	def p_bounds (self):
-		return np.array([[ 0,  10.], 
-		                 [ 0, 100.],
-		                 [ 0,  10.], 
-		                 [ 0, 100.],
-		                 [ 0,  10.], 
-		                 [ 0, 100.]])
+		return np.array([[ 0.1,  10.], 
+		                 [ 0.1, 100.],
+		                 [ 0.1,  10.], 
+		                 [ 0.1, 100.],
+		                 [ 0.1,  10.], 
+		                 [ 0.1, 100.]])
 
 	def __call__ (self, x, p, grad=False):
 		# Constants
