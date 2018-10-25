@@ -29,6 +29,9 @@ from GPy.models import SparseGPRegression
 from . import GPModel
 from ..utils import binary_dimensions
 
+import logging
+logging.getLogger("sparse gp").propagate = False
+
 class SparseGPModel (GPModel):
 	def __init__ (self, model_dict):
 		super().__init__(model_dict)

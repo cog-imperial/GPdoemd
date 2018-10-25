@@ -30,6 +30,9 @@ from GPy.kern import Kern
 from . import SurrogateModel
 from ..utils import binary_dimensions
 
+import logging
+logging.getLogger('GP').propagate = False
+
 
 class GPModel (SurrogateModel):
 	def __init__ (self, model_dict):
