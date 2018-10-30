@@ -153,48 +153,45 @@ def JR (mu, s2, noise_var=None, pps=None):
 	mu, s2, noise_var, pps, _, M, E = _reshape(mu, s2, noise_var, pps)
 
 	# Pre-compute
-	iS   = np.linalg.inv(s2 + noise_var)
-	diS  = np.linalg.det(iS)
-	ldiS = np.log(diS)
-	diS  = np.sqrt( diS**2 / np.linalg.det(2*iS) )
-	
-	""" First term """
-	T1 = -0.5 * E * np.log(2 * np.pi)
-	T1 = np.sum( pps * (T1 + np.log(diS)), axis=1 )
+	S   = s2 + noise_var
+	iS  = np.linalg.inv( S )
+	dS  = np.linalg.det( S )
+	ldS = np.log( dS )
 
-	""" Second term """
+	""" Sum of entropies """
+	T1 = np.sum( pps * ( (E/2)*np.log(4*np.pi) + 0.5*ldS ), axis=1)
+
+	""" Entropy of sum """
 	# Diagonal elements: (i,i)
-	T2 = np.sum( pps**2 * diS, axis=1 )
-
-	# Off-diagonal elements: (i,j) and (j,i)
+	T2 = np.sum( pps*pps / ( 2**(E/2.) * np.sqrt(dS) ), axis=1 )
+	
+	# Off-diagonal elements: (i,j)
 	for i in range(M):
 		# mu_i^T * inv(Si) * mu_i 
-		mi    = np.expand_dims(mu[:,i], 2)
-		iSmi  = np.matmul(iS[:,i], mi)
-		miSmi = np.sum(mi * iSmi, axis=(1,2))
+		mi     = np.expand_dims(mu[:,i], 2)
+		iSmi   = np.matmul(iS[:,i], mi)
+		miiSmi = np.sum(mi * iSmi, axis=(1,2))
 
 		for j in range(i+1, M):
 			# mu_j^T * inv(Sj) * mu_j
-			mj    = np.expand_dims(mu[:,j], 2)
-			iSmj  = np.matmul(iS[:,j], mj)
-			miSmj = np.sum(mj * iSmj, axis=(1,2))
+			mj     = np.expand_dims(mu[:,j], 2)
+			iSmj   = np.matmul(iS[:,j], mj)
+			mjiSmj = np.sum(mj * iSmj, axis=(1,2))
+
+			# inv( inv(Si) + inv(Sj) )
+			iSiS  = iS[:,i] + iS[:,j]
+			iiSiS = np.linalg.inv( iSiS )
+			liSiS = np.log( np.linalg.det( iSiS ))
 
 			# mu_ij^T * inv( inv(Si) + inv(Sj) ) * mu_ij
-			mij  = iSmi + iSmj
-			iSij = np.linalg.inv( iS[:,i] + iS[:,j] )
-			miSm = np.sum(mij * np.matmul(iSij, mij), axis=(1,2))
+			mij   = iSmi + iSmj
+			iiSSj = np.sum(mij * np.matmul(iiSiS, mij), axis=(1,2))
 
-			# log( det(iSi) * det(iSj) / det(iSi + iSj) )
-			logS = ldiS[:,i] + ldiS[:,j] - \
-					np.log( np.linalg.det( iS[:,i] + iS[:,j] ) )
+			phi = miiSmi + mjiSmj - iiSSj + ldS[:,i] + ldS[:,j] + liSiS
+			T2 += 2 * pps[i] * pps[j] * np.exp(-0.5*phi)
 
-			phi = miSmi + miSmj - miSm - logS
-			T2 += 2 * pps[i] * pps[j] * np.exp(-0.5 * phi)
-
-	T2 = - np.log(T2) - 0.5 * E * np.log(2*np.pi)
-
-	""" Sum first and second term """
-	return T1 + T2
+	T2 = E/2 * np.log(2*np.pi) - np.log(T2)
+	return T2 - T1
 
 
 """
