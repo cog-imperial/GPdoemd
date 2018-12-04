@@ -264,7 +264,7 @@ class GPModel (SurrogateModel):
 
 			# d k / d p
 			kx = gp.kern.kernx.K(Z, gpX)
-			dk = np.zeros((n, gpX.shape[0], self.dim_p))
+			dk = np.zeros((len(Z), gpX.shape[0], self.dim_p))
 			for i in range( gpX.shape[0] ):
 				dt      = gp.kern.kernp.gradients_X(kx[:,[i]], Z, gpX[[i]])
 				dk[:,i] = dt[:,dx:]
