@@ -15,7 +15,7 @@ setup(
     author_email=about['__author_email__'],
     license=about['__license__'],
     version=about['__version__'],
-    url='https://github.com/scwolof/GPdoemd',
+    url='https://github.com/cog-imperial/GPdoemd',
     packages=find_packages(exclude=['tests','docs']),
     install_requires=['numpy>=1.7',
                       'scipy>=0.17',
