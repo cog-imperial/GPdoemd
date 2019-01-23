@@ -1,14 +1,12 @@
 sudo: false
 language: python
 python:
-  - "3.4"
-  - "3.5"
   - "3.6"
 os:
   - linux
 install:
   - pip install -r requirements.txt
-  - pip install "pytest<3.4" pytest-runner
+  - pip install pytest pytest-runner
   - pip install codecov
   - pip install git+https://github.com/scwolof/gp_grief
 script:
