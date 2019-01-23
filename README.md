@@ -6,12 +6,12 @@ Python package based on the following paper presented at ICML 2018
 Please reference this software package as
 ```
 @article{GPdoemd2018,
-  author        = {Simon Olofsson and Ruth Misener},
-  title         = {{GP}doemd: a python package for design of experiments for model discrimination},
+  author        = {Simon Olofsson and Lukas Hebing and Sebastian Niedenf\"uhr and Marc Peter Deisenroth and Ruth Misener},
+  title         = {{GP}doemd: a {P}ython package for design of experiments for model discrimination},
   journal       = {arXiv e-prints},
-  archivePrefix = "arXiv",
+  archivePrefix = {arXiv},
   eprint        = {1810.02561},
-  year          = 2018,
+  year          = {2018},
 }
 ```
 
