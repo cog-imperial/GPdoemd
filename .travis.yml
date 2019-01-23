@@ -7,7 +7,7 @@ os:
 install:
   - pip install -r requirements.txt
   - pip install git+https://github.com/scwolof/gp_grief
-  - pip install pytest pytest-runner
+  - pip install pytest>=3.6 pytest-runner
   - pip install codecov
 script:
   - python setup.py test
